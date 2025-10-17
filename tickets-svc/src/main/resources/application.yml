@@ -1,5 +1,13 @@
 server:
-  port: ${PORT:8080}
+  port: 8080
+  error:
+    include-stacktrace: always
+    include-message: always
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql: TRACE
 
 spring:
   datasource:
@@ -11,7 +19,14 @@ spring:
       ddl-auto: validate
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+        format_sql: true
+  flyway:
+    enabled: true
+    schemas: app
+    default-schema: app
+    baseline-on-migrate: true
 
 management:
   endpoints:
@@ -19,6 +34,3 @@ management:
       exposure:
         include: health,info
 
-auth:
-  jwt:
-    secret: ${APP_JWT_SECRET}
