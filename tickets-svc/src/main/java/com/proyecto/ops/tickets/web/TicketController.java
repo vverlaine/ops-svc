@@ -16,6 +16,10 @@ import com.proyecto.ops.tickets.web.CreateTicketRequest;
 import com.proyecto.ops.tickets.web.TicketResponse;
 import com.proyecto.ops.tickets.web.UpdateTicketStatusRequest;
 
+import com.proyecto.ops.tickets.clients.CustomersClient;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
+
 import jakarta.validation.Valid;
 
 @RestController
@@ -24,9 +28,11 @@ import jakarta.validation.Valid;
 public class TicketController {
 
     private final TicketRepository repo;
+    private final CustomersClient customersClient;
 
-    public TicketController(TicketRepository repo) {
+    public TicketController(TicketRepository repo, CustomersClient customersClient) {
         this.repo = repo;
+        this.customersClient = customersClient;
     }
 
     @GetMapping
@@ -50,6 +56,12 @@ public class TicketController {
         t.setCustomerId(req.customerId());
         t.setAssetId(req.assetId());
         t.setCreatedBy(req.createdBy());
+        // Validate that customer exists in customers-svc
+        if (t.getCustomerId() == null || !customersClient.exists(t.getCustomerId())) {
+            throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, "CustomerId inválido o no existe en customers-svc"
+            );
+        }
 
         Ticket saved = repo.save(t);
         return ResponseEntity
