@@ -85,7 +85,7 @@ public class AssetController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Asset> update(@PathVariable UUID id, @RequestBody UpdateAssetRequest req) {
+    public ResponseEntity<Asset> update(@PathVariable UUID id, @Valid @RequestBody UpdateAssetRequest req) {
         return repo.findById(id).map(a -> {
             a.setType(req.type());
             a.setModel(req.model());
