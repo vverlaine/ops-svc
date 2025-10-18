@@ -1,0 +1,23 @@
+server:
+  port: 8090
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: app
+        jdbc.time_zone: UTC
+  flyway:
+    enabled: false   # usamos tu DDL existente, sin migraciones aquí
+
+management.endpoints.web.exposure.include: health,info
+
+# integración
+tickets:
+  base-url: http://localhost:8080
