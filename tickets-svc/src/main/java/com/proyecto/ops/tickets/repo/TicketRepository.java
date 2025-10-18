@@ -16,15 +16,17 @@ public interface TicketRepository extends JpaRepository<Ticket, UUID> {
     @Query("""
            select t
            from Ticket t
-           where t.status = coalesce(:status, t.status)
-             and t.priority = coalesce(:priority, t.priority)
+           where t.status     = coalesce(:status, t.status)
+             and t.priority   = coalesce(:priority, t.priority)
              and t.customerId = coalesce(:customerId, t.customerId)
+             and t.requestedBy = coalesce(:requestedBy, t.requestedBy)
            order by t.createdAt desc
            """)
     Page<Ticket> search(
             @Param("status") TicketStatus status,
             @Param("priority") TicketPriority priority,
             @Param("customerId") UUID customerId,
+            @Param("requestedBy") UUID requestedBy,
             Pageable pageable
     );
 }

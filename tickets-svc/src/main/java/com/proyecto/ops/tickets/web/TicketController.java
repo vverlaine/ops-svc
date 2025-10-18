@@ -54,9 +54,11 @@ public class TicketController {
             @RequestParam(required = false) TicketStatus status,
             @RequestParam(required = false) TicketPriority priority,
             @RequestParam(required = false) UUID customerId,
+            @RequestParam(required = false) UUID requestedBy,
             Pageable pageable
     ) {
-        return repo.search(status, priority, customerId, pageable).map(this::toResponse);
+        return repo.search(status, priority, customerId, requestedBy, pageable)
+                .map(this::toResponse);
     }
 
     @GetMapping("/{id}")
@@ -75,7 +77,8 @@ public class TicketController {
         if (req.status() != null) {
             t.setStatus(req.status());       // <-- sin valueOf
 
-                }if (req.priority() != null) {
+        }
+        if (req.priority() != null) {
             t.setPriority(req.priority());   // <-- sin valueOf
         }
         t.setCustomerId(req.customerId());
