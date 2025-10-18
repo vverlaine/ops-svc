@@ -5,17 +5,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.ops.customers.model.CustomerBasic;
 import com.proyecto.ops.customers.repo.CustomerJdbcRepository;
+import com.proyecto.ops.customers.security.AuthenticatedUser;
+import com.proyecto.ops.customers.security.CurrentUser;
 
-import jakarta.validation.constraints.Min;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/customers")
@@ -27,55 +34,103 @@ public class CustomerController {
         this.repo = repo;
     }
 
+    private Map<String, Object> toPage(List<CustomerBasic> content, int page, int size, long total) {
+        int safeSize = Math.max(size, 1);
+        int totalPages = (int) Math.ceil((double) total / safeSize);
+
+        Map<String, Object> pageable = new LinkedHashMap<>();
+        pageable.put("pageNumber", page);
+        pageable.put("pageSize", size);
+        pageable.put("sort", Map.of("sorted", false, "unsorted", true, "empty", true));
+        pageable.put("offset", page * size);
+        pageable.put("paged", true);
+        pageable.put("unpaged", false);
+
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("content", content);
+        out.put("pageable", pageable);
+        out.put("totalPages", totalPages);
+        out.put("totalElements", total);
+        out.put("last", page >= totalPages - 1);
+        out.put("first", page == 0);
+        out.put("numberOfElements", content.size());
+        out.put("size", size);
+        out.put("number", page);
+        out.put("sort", Map.of("sorted", false, "unsorted", true, "empty", true));
+        out.put("empty", content.isEmpty());
+        return out;
+    }
+
     @GetMapping
-    public Map<String, Object> list(
-            @RequestParam(defaultValue = "0") @Min(0) int page,
-            @RequestParam(defaultValue = "10") @Min(1) int size,
-            @RequestParam(required = false) String q
+    public ResponseEntity<?> list(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @CurrentUser AuthenticatedUser me
     ) {
-        List<CustomerBasic> content;
-        int total;
+        List<CustomerBasic> data = repo.list(page, size);
+        long total = repo.countAll();
+        return ResponseEntity.ok(toPage(data, page, size, total));
+    }
 
-        if (q != null && !q.isBlank()) {
-            content = repo.searchByName(q, page, size);
-            total = repo.countByName(q);
-        } else {
-            content = repo.findPage(page, size);
-            total = repo.countAll();
-        }
+    @GetMapping("/search")
+    public ResponseEntity<?> search(
+            @RequestParam String q,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @CurrentUser AuthenticatedUser me
+    ) {
+        List<CustomerBasic> data = repo.search(q, page, size);
+        long total = repo.countSearch(q);
+        return ResponseEntity.ok(toPage(data, page, size, total));
+    }
 
-        Map<String, Object> resp = new LinkedHashMap<>();
-        resp.put("content", content);
-        resp.put("page", page);
-        resp.put("size", size);
-        resp.put("totalElements", total);
-        resp.put("totalPages", (int) Math.ceil((double) total / size));
-        resp.put("q", q);
-        return resp;
+    @PostMapping
+    public ResponseEntity<?> create(
+            @Valid @RequestBody CreateCustomerRequest req,
+            @CurrentUser AuthenticatedUser me
+    ) {
+        CustomerBasic saved = repo.create(
+                req.name(),
+                req.taxId(),
+                req.email(),
+                req.phone()
+        );
+        return ResponseEntity.ok(saved);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> update(
+            @PathVariable UUID id,
+            @RequestBody CreateCustomerRequest req,
+            @CurrentUser AuthenticatedUser me
+    ) {
+        return repo.updatePartial(
+                id,
+                req.name(),
+                req.taxId(),
+                req.email(),
+                req.phone()
+        )
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> delete(
+            @PathVariable UUID id,
+            @CurrentUser AuthenticatedUser me
+    ) {
+        boolean deleted = repo.delete(id);
+        return deleted ? ResponseEntity.noContent().build()
+                : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerBasic> getById(@PathVariable UUID id) {
+    public ResponseEntity<CustomerBasic> getById(@PathVariable UUID id,
+            @CurrentUser AuthenticatedUser me) {
         return repo.findById(id)
                 .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
-    public record CreateCustomerRequest(
-            @jakarta.validation.constraints.NotBlank String name
-            ) {
-
-    }
-
-// Crear cliente
-    @org.springframework.web.bind.annotation.PostMapping
-    public org.springframework.http.ResponseEntity<CustomerBasic> create(
-            @org.springframework.web.bind.annotation.RequestBody CreateCustomerRequest req
-    ) {
-        UUID id = repo.create(req.name());
-
-        return org.springframework.http.ResponseEntity
-                .created(java.net.URI.create("/customers/" + id))
-                .body(new CustomerBasic(id, req.name()));
-    }
 }
