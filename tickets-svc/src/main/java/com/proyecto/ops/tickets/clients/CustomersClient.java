@@ -2,54 +2,62 @@ package com.proyecto.ops.tickets.clients;
 
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientException;
 
 @Component
 public class CustomersClient {
 
+    private static final Logger log = LoggerFactory.getLogger(CustomersClient.class);
     private final RestClient http;
 
-    public CustomersClient(
-            RestClient.Builder builder,
-            @Value("${customers.base-url:http://localhost:8081}") String baseUrl) {
-        this.http = builder.baseUrl(baseUrl).build();
+    // Inyecta el bean definido en RestClientConfig (ya existente)
+    public CustomersClient(RestClient customersRestClient) {
+        this.http = customersRestClient;
     }
 
-    /** Verifica si existe el customer en customers-svc. */
+    // DTO para mapear la respuesta de /customers/{id}
+    public static record CustomerDTO(UUID id, String name) {}
+
+    /** Verifica existencia del cliente (200 -> true, 404 -> false). */
     public boolean exists(UUID id) {
         try {
             http.get()
                 .uri("/customers/{id}", id)
                 .retrieve()
-                .toBodilessEntity(); // 200 si existe
+                .toBodilessEntity();
             return true;
         } catch (HttpClientErrorException.NotFound e) {
-            return false; // 404 -> no existe
+            return false;
         } catch (RestClientException e) {
-            // timeouts/5xx/etc. Lo tomamos como "no disponible/no existe" para no romper el flujo.
+            log.error("customers-svc unreachable when checking id={}: {}", id, e.getMessage());
+            // En fallo de red, devolvemos false para no dejar crear el ticket
             return false;
         }
     }
 
-    /** DTO mínimo para leer name del customers-svc */
-    private static record CustomerDto(UUID id, String name) {}
-
-    /** Intenta obtener el nombre del cliente; si falla, devuelve null. */
+    /** Devuelve el nombre del cliente; si no se puede, "Unknown". */
     public String tryGetName(UUID id) {
         try {
-            CustomerDto dto = http.get()
-                    .uri("/customers/{id}", id)
-                    .retrieve()
-                    .body(CustomerDto.class);
-            return dto != null ? dto.name() : null;
+            CustomerDTO dto = http.get()
+                .uri("/customers/{id}", id)
+                .retrieve()
+                .body(CustomerDTO.class);
+
+            return (dto != null && dto.name() != null) ? dto.name() : "Unknown";
         } catch (HttpClientErrorException.NotFound e) {
-            return null; // 404
+            return "Unknown";
+        } catch (ResourceAccessException e) {
+            log.error("customers-svc unreachable when fetching id={}: {}", id, e.getMessage());
+            return "Unknown";
         } catch (RestClientException e) {
-            return null; // timeouts/5xx/etc
+            log.error("Error calling customers-svc for id={}: {}", id, e.getMessage());
+            return "Unknown";
         }
     }
 }
