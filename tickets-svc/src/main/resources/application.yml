@@ -53,5 +53,7 @@ resilience4j:
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 3
 
+contacts:
+  base-url: http://localhost:8089
 customers:
   base-url: http://localhost:8081

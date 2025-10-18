@@ -9,13 +9,13 @@ import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
-import jakarta.persistence.*;
-import jakarta.persistence.PrePersist;
 
 @Entity
 @Table(schema = "app", name = "tickets")
@@ -52,9 +52,18 @@ public class Ticket {
     private UUID customerId;
 
     @JdbcTypeCode(SqlTypes.UUID)
+    @Column(name = "site_id")           // <-- NUEVO
+    private UUID siteId;
+
+    @JdbcTypeCode(SqlTypes.UUID)
     @Column(name = "asset_id")
     private UUID assetId;
 
+    @JdbcTypeCode(SqlTypes.UUID)
+    @Column(name = "requested_by")
+    private UUID requestedBy;
+
+    // En tu base actual este campo es TEXT; mantenemos String.
     @NotBlank
     @Column(name = "created_by", nullable = false, length = 200)
     private String createdBy;
@@ -62,6 +71,7 @@ public class Ticket {
     @Column(name = "created_at", nullable = false, columnDefinition = "timestamptz")
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
+    // Getters/Setters
     public UUID getId() {
         return id;
     }
@@ -110,12 +120,28 @@ public class Ticket {
         this.customerId = customerId;
     }
 
+    public UUID getSiteId() {
+        return siteId;
+    }          // <-- NUEVO
+
+    public void setSiteId(UUID siteId) {
+        this.siteId = siteId;
+    }
+
     public UUID getAssetId() {
         return assetId;
     }
 
     public void setAssetId(UUID assetId) {
         this.assetId = assetId;
+    }
+
+    public UUID getRequestedBy() {
+        return requestedBy;
+    } // <-- NUEVO
+
+    public void setRequestedBy(UUID requestedBy) {
+        this.requestedBy = requestedBy;
     }
 
     public String getCreatedBy() {

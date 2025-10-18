@@ -1,20 +1,21 @@
+// tickets-svc/src/main/java/com/proyecto/ops/tickets/web/TicketResponse.java
 package com.proyecto.ops.tickets.web;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-import com.proyecto.ops.tickets.model.TicketPriority;
-import com.proyecto.ops.tickets.model.TicketStatus;
-
 public record TicketResponse(
         UUID id,
         String title,
         String description,
-        TicketStatus status,
-        TicketPriority priority,
+        String status,
+        String priority,
         UUID customerId,
-        String customerName,   // <- nuevo
+        String customerName,
+        UUID siteId,
         UUID assetId,
+        UUID requestedBy,
+        String requestedByName,
         String createdBy,
         OffsetDateTime createdAt
 ) {}

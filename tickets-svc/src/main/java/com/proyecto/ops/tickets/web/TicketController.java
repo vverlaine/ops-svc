@@ -26,6 +26,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import com.proyecto.ops.tickets.model.TicketStatus;
 
+import com.proyecto.ops.tickets.clients.CustomersClient;
+import com.proyecto.ops.tickets.clients.ContactsClient;
+import com.proyecto.ops.tickets.model.Ticket;
+import com.proyecto.ops.tickets.repo.TicketRepository;
+import org.springframework.web.client.ResourceAccessException;
+
 @RestController
 @RequestMapping("/tickets")
 @Validated
@@ -33,10 +39,14 @@ public class TicketController {
 
     private final TicketRepository repo;
     private final CustomersClient customersClient;
+    private final ContactsClient contactsClient;
 
-    public TicketController(TicketRepository repo, CustomersClient customersClient) {
+    public TicketController(TicketRepository repo,
+            CustomersClient customersClient,
+            ContactsClient contactsClient) {
         this.repo = repo;
         this.customersClient = customersClient;
+        this.contactsClient = contactsClient;
     }
 
     @GetMapping
@@ -61,9 +71,17 @@ public class TicketController {
         Ticket t = new Ticket();
         t.setTitle(req.title());
         t.setDescription(req.description());
-        t.setPriority(req.priority()); // si viene null, @PrePersist pone MEDIUM
+
+        if (req.status() != null) {
+            t.setStatus(req.status());       // <-- sin valueOf
+
+                }if (req.priority() != null) {
+            t.setPriority(req.priority());   // <-- sin valueOf
+        }
         t.setCustomerId(req.customerId());
+        t.setSiteId(req.siteId());           // si lo tienes en la entidad
         t.setAssetId(req.assetId());
+        t.setRequestedBy(req.requestedBy()); // <-- importante
         t.setCreatedBy(req.createdBy());
 
         if (t.getCustomerId() == null) {
@@ -71,22 +89,19 @@ public class TicketController {
         }
 
         try {
-            // valida contra customers-svc
             if (!customersClient.exists(t.getCustomerId())) {
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST, "CustomerId inválido o no existe en customers-svc"
                 );
             }
-        } catch (org.springframework.web.client.ResourceAccessException e) {
-            // customers-svc no disponible / timeouts / connection refused
+        } catch (ResourceAccessException e) {
             throw new ResponseStatusException(
                     HttpStatus.SERVICE_UNAVAILABLE, "customers-svc no disponible", e
             );
         }
 
         Ticket saved = repo.save(t);
-        return ResponseEntity
-                .created(URI.create("/tickets/" + saved.getId()))
+        return ResponseEntity.created(URI.create("/tickets/" + saved.getId()))
                 .body(toResponse(saved));
     }
 
@@ -126,20 +141,23 @@ public class TicketController {
     }
 
     private TicketResponse toResponse(Ticket t) {
-        String customerName = null;
-        if (t.getCustomerId() != null) {
-            customerName = customersClient.tryGetName(t.getCustomerId());
-        }
+        String customerName = customersClient.getNameOrUnknown(t.getCustomerId());
+        String requestedByName = (t.getRequestedBy() != null)
+                ? contactsClient.getNameOrUnknown(t.getRequestedBy())
+                : null;
 
         return new TicketResponse(
                 t.getId(),
                 t.getTitle(),
                 t.getDescription(),
-                t.getStatus(),
-                t.getPriority(),
+                t.getStatus().name(),
+                t.getPriority().name(),
                 t.getCustomerId(),
                 customerName,
+                t.getSiteId(),
                 t.getAssetId(),
+                t.getRequestedBy(),
+                requestedByName,
                 t.getCreatedBy(),
                 t.getCreatedAt()
         );

@@ -17,3 +17,6 @@ spring:
     enabled: true
     schemas: app
     default-schema: app
+
+customers:
+  base-url: http://localhost:8081
