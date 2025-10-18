@@ -1,0 +1,29 @@
+server:
+  port: 8087
+
+spring:
+  ddatasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: app
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    schemas: app
+    default-schema: app
+    locations: classpath:db/migration
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    com.proyecto.ops.assets.clients.CustomersClient: info
+
+customers:
+  base-url: http://localhost:8081
