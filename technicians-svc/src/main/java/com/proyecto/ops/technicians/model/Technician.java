@@ -22,6 +22,8 @@ public class Technician {
     @GeneratedValue
     private UUID id;
 
+    private String userName;
+
     @Column(name = "user_id", nullable = false, unique = true)
     private UUID userId;
 
@@ -75,5 +77,13 @@ public class Technician {
 
     public void setCreatedAt(OffsetDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 }

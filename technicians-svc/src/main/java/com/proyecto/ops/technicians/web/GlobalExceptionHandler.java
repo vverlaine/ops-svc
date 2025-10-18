@@ -1,29 +1,28 @@
 package com.proyecto.ops.technicians.web;
 
-import java.time.OffsetDateTime;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-  @ExceptionHandler(DataIntegrityViolationException.class)
-  public ResponseEntity<Map<String, Object>> handleIntegrity(DataIntegrityViolationException ex,
-                                                             HttpServletRequest req) {
-    Map<String, Object> body = new LinkedHashMap<>();
-    body.put("timestamp", OffsetDateTime.now().toString());
-    body.put("status", HttpStatus.CONFLICT.value());
-    body.put("error", "Conflict");
-    body.put("message", "user_id ya está asociado a un técnico");
-    body.put("path", req.getRequestURI());
-    return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
-  }
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("error", "Validation failed");
+        body.put("fields", ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(
+                        fe -> fe.getField(),
+                        fe -> fe.getDefaultMessage(),
+                        (a, b) -> a
+                )));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
 }

@@ -13,6 +13,7 @@ spring:
       hibernate.default_schema: app
       hibernate.show_sql: false
       hibernate.jdbc.time_zone: UTC
+      hibernate.ddl-auto: validate
   flyway:
     enabled: true
     schemas: app
@@ -20,3 +21,6 @@ spring:
 
 customers:
   base-url: http://localhost:8081
+
+auth:
+  base-url: http://localhost:8099

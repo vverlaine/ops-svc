@@ -1,7 +1,8 @@
 package com.proyecto.ops.technicians.web;
 
-import java.net.URI;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -22,6 +23,8 @@ import org.springframework.web.server.ResponseStatusException;
 import com.proyecto.ops.technicians.clients.UsersClient;
 import com.proyecto.ops.technicians.model.Technician;
 import com.proyecto.ops.technicians.repo.TechnicianRepository;
+import com.proyecto.ops.technicians.security.AuthenticatedUser;
+import com.proyecto.ops.technicians.security.CurrentUser;
 
 import jakarta.validation.Valid;
 
@@ -37,12 +40,12 @@ public class TechnicianController {
         this.usersClient = usersClient;
     }
 
+    // ---------- Read ----------
     @GetMapping
     public Page<TechnicianResponse> list(
             @RequestParam(required = false) Boolean active,
             @RequestParam(required = false) String skill,
-            Pageable pageable
-    ) {
+            Pageable pageable) {
         return repo.search(active, skill, pageable).map(this::toResponse);
     }
 
@@ -53,38 +56,61 @@ public class TechnicianController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // ---------- Create ----------
     @PostMapping
-    public ResponseEntity<TechnicianResponse> create(@Valid @RequestBody TechnicianRequest req) {
-        Technician t = new Technician();
-        t.setUserId(req.userId());
-        if (req.active() != null) {
-            t.setActive(req.active());
+    public ResponseEntity<TechnicianResponse> create(
+            @Valid @RequestBody CreateTechnicianRequest req,
+            @CurrentUser AuthenticatedUser me) {
+
+        if (me == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        t.setSkills(req.skills());
+
+        // Avoid duplicates by userId
+        var existing = repo.findByUserId(me.id());
+        if (existing.isPresent()) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(toResponse(existing.get()));
+        }
+
+        Technician t = new Technician();
+        t.setUserId(me.id());
+        t.setUserName(me.name());
+        t.setActive(Boolean.TRUE.equals(req.getActive()));
+
+        // de-dup skills preserving order
+        if (req.getSkills() != null) {
+            LinkedHashSet<String> set = new LinkedHashSet<>(req.getSkills());
+            t.setSkills(new ArrayList<>(set));
+        } else {
+            t.setSkills(null);
+        }
 
         Technician saved = repo.save(t);
-        return ResponseEntity
-                .created(URI.create("/technicians/" + saved.getId()))
-                .body(toResponse(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(saved));
     }
 
+    // ---------- Update ----------
     @PatchMapping("/{id}")
     public ResponseEntity<TechnicianResponse> update(
             @PathVariable UUID id,
-            @RequestBody UpdateTechnicianRequest req
-    ) {
+            @RequestBody UpdateTechnicianRequest req) {
+
         return repo.findById(id).map(t -> {
             if (req.active() != null) {
                 t.setActive(req.active());
             }
             if (req.skills() != null) {
-                t.setSkills(req.skills());
+                // de-dup and keep order if caller sends duplicates
+                LinkedHashSet<String> set = new LinkedHashSet<>(req.skills());
+                t.setSkills(new ArrayList<>(set));
             }
             Technician saved = repo.save(t);
             return ResponseEntity.ok(toResponse(saved));
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // ---------- Delete ----------
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         return repo.findById(id).map(t -> {
@@ -93,6 +119,7 @@ public class TechnicianController {
         }).orElseGet(() -> ResponseEntity.notFound().<Void>build());
     }
 
+    // ---------- Manage skills ----------
     @PatchMapping("/{id}/skills/add")
     public TechnicianResponse addSkill(@PathVariable UUID id, @RequestBody SkillReq req) {
         Technician t = repo.findById(id)
@@ -100,13 +127,13 @@ public class TechnicianController {
 
         LinkedHashSet<String> set = new LinkedHashSet<>();
         if (t.getSkills() != null) {
-            set.addAll(t.getSkills()); // getSkills() is a List<String>
+            set.addAll(t.getSkills());
         }
         if (req.skill() != null && !req.skill().isBlank()) {
             set.add(req.skill());
         }
 
-        t.setSkills(set.isEmpty() ? null : new java.util.ArrayList<>(set));
+        t.setSkills(set.isEmpty() ? null : new ArrayList<>(set));
         Technician saved = repo.save(t);
         return toResponse(saved);
     }
@@ -120,23 +147,30 @@ public class TechnicianController {
             return toResponse(t);
         }
 
-        LinkedHashSet<String> set = new LinkedHashSet<>();
-        set.addAll(t.getSkills());
+        LinkedHashSet<String> set = new LinkedHashSet<>(t.getSkills());
         set.remove(req.skill());
 
-        t.setSkills(set.isEmpty() ? null : new java.util.ArrayList<>(set));
+        t.setSkills(set.isEmpty() ? null : new ArrayList<>(set));
         Technician saved = repo.save(t);
         return toResponse(saved);
     }
 
-    public static record SkillReq(String skill) {
+    public static record SkillReq(String skill) { }
 
-    }
-
+    // ---------- Mapper ----------
     private TechnicianResponse toResponse(Technician t) {
-        String userName = usersClient.getNameOrUnknown(t.getUserId());
+        String userName = (t.getUserName() != null && !t.getUserName().isBlank())
+                ? t.getUserName()
+                : usersClient.getNameOrUnknown(t.getUserId());
+
+        List<String> skills = t.getSkills();
         return new TechnicianResponse(
-                t.getId(), t.getUserId(), userName, t.isActive(), t.getSkills(), t.getCreatedAt()
+                t.getId(),
+                t.getUserId(),
+                userName,
+                t.isActive(),
+                skills,
+                t.getCreatedAt()
         );
     }
 }

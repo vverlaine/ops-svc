@@ -1,5 +1,6 @@
 package com.proyecto.ops.technicians.repo;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -33,4 +34,6 @@ public interface TechnicianRepository extends JpaRepository<Technician, UUID> {
       @Param("skill")  String skill,
       Pageable pageable
   );
+  Optional<Technician> findByUserId(UUID userId);
+  boolean existsByUserId(UUID userId);
 }
