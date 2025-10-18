@@ -1,0 +1,22 @@
+server:
+  port: 8091
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: app
+      hibernate.show_sql: false
+      hibernate.jdbc.time_zone: UTC
+  flyway:
+    enabled: true
+    schemas: app
+    default-schema: app
+
+customers:
+  base-url: http://localhost:8081
