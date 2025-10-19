@@ -5,6 +5,6 @@ RUN ./gradlew :tickets-svc:clean :tickets-svc:bootJar -x test
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY tickets-svc/build/libs/*.jar app.jar
+COPY --from=build /workspace/tickets-svc/build/libs/*.jar /app/app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]
