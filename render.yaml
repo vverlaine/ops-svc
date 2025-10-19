@@ -16,8 +16,7 @@ services:
     name: customers-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: customers-svc
     branch: main
     region: frankfurt
@@ -39,8 +38,7 @@ services:
     name: technicians-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: technicians-svc
     branch: main
     region: frankfurt
@@ -62,8 +60,7 @@ services:
     name: contacts-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: contacts-svc
     branch: main
     region: frankfurt
@@ -85,8 +82,7 @@ services:
     name: sites-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: sites-svc
     branch: main
     region: frankfurt
@@ -108,8 +104,7 @@ services:
     name: tickets-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: tickets-svc
     branch: main
     region: frankfurt
@@ -137,8 +132,7 @@ services:
     name: work-orders-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: work-orders-svc
     branch: main
     region: frankfurt
@@ -162,8 +156,7 @@ services:
     name: assets-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: assets-svc
     branch: main
     region: frankfurt
@@ -187,8 +180,7 @@ services:
     name: visits-svc
     plan: free
     runtime: image
-    image:
-      url: eclipse-temurin:17-jdk
+    image: eclipse-temurin:17-jdk
     rootDir: visits-svc
     branch: main
     region: frankfurt
