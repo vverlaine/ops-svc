@@ -1,12 +1,13 @@
-
-ARG MODULE=customers-svc
+# Etapa de build
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /workspace
+
 COPY . .
-RUN ./gradlew :${MODULE}:clean :${MODULE}:bootJar -x test
+
+RUN ./gradlew :customers-svc:clean :customers-svc:bootJar -x test
 
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY ${MODULE}/build/libs/*.jar app.jar
+COPY customers-svc/build/libs/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]
