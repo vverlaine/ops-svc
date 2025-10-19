@@ -8,8 +8,10 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-      default_schema: app
     open-in-view: false
+    properties:
+      hibernate.default_schema: app
+      hibernate.format_sql: true
   mail:
     host: ${SPRING_MAIL_HOST:localhost}
     port: ${SPRING_MAIL_PORT:1025}
@@ -18,11 +20,26 @@ spring:
     properties:
       mail.smtp.auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:false}
       mail.smtp.starttls.enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:false}
+  flyway:
+    enabled: true
+    schemas: app
+    default-schema: app
+    locations: classpath:db/migration
 
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: framework
 
 management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
   endpoints:
     web:
       exposure:
@@ -32,9 +49,6 @@ logging:
   level:
     root: INFO
     org.springframework.security: INFO
-
-flyway:
-  schemas: app
 
 visits:
   mail:

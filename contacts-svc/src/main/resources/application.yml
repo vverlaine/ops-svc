@@ -1,5 +1,6 @@
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: native
 
 spring:
   datasource:
@@ -20,3 +21,14 @@ spring:
 
 customers:
   base-url: ${CUSTOMERS_BASE_URL:http://localhost:8081}
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true

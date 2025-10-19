@@ -1,5 +1,6 @@
 server:
   port: ${PORT:8080}
+  forward-headers-strategy: framework
   error:
     include-stacktrace: always
     include-message: always
@@ -23,6 +24,7 @@ spring:
         jdbc:
           time_zone: UTC
         format_sql: true
+        default_schema: app
   flyway:
     enabled: true
     schemas: app
@@ -34,6 +36,15 @@ management:
     web:
       exposure:
         include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
 
 resilience4j:
   retry:
@@ -54,6 +65,6 @@ resilience4j:
         permitted-number-of-calls-in-half-open-state: 3
 
 contacts:
-  base-url: ${CONTACTS_BASE_URL:http://localhost:8089}
+  base-url: ${CONTACTS_BASE_URL:http://localhost:8080}
 customers:
   base-url: ${CUSTOMERS_BASE_URL:http://localhost:8081}
