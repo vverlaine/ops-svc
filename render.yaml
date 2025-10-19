@@ -26,11 +26,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
 
   # ──────────────────────────────────────────────────────────────────────────
   # technicians-svc
@@ -49,11 +55,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
 
   # ──────────────────────────────────────────────────────────────────────────
   # contacts-svc
@@ -72,11 +84,19 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
 
   # ──────────────────────────────────────────────────────────────────────────
   # sites-svc
@@ -95,11 +115,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
 
   # ──────────────────────────────────────────────────────────────────────────
   # tickets-svc
@@ -118,11 +144,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
       - key: CUSTOMERS_BASE_URL
         value: https://customers-svc.onrender.com
       - key: TECHNICIANS_BASE_URL
@@ -147,11 +179,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
       - key: TICKETS_BASE_URL
         value: https://tickets-svc.onrender.com
 
@@ -172,11 +210,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
       - key: CUSTOMERS_BASE_URL
         value: https://customers-svc.onrender.com
 
@@ -197,11 +241,17 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_DATASOURCE_URL
-        fromDatabase: { name: ops-postgres, property: connectionString }
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
       - key: SPRING_DATASOURCE_USERNAME
-        fromDatabase: { name: ops-postgres, property: user }
+        fromDatabase:
+          name: ops-postgres
+          property: user
       - key: SPRING_DATASOURCE_PASSWORD
-        fromDatabase: { name: ops-postgres, property: password }
+        fromDatabase:
+          name: ops-postgres
+          property: password
       - key: MAIL_HOST
         value: sandbox.smtp.mailtrap.io
       - key: MAIL_PORT
