@@ -1,0 +1,15 @@
+# Docker build context ignore list
+.git
+.gradle
+build/
+*/build/
+!gradle/wrapper/*
+.gradle/
+**/.DS_Store
+**/*.iml
+**/.idea/*
+**/.vscode/*
+**/node_modules/*
+**/.env
+**/tmp/*
+**/logs/*

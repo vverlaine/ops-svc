@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: ${PORT:8080}
 
 spring:
   datasource:
@@ -20,4 +20,4 @@ management.endpoints.web.exposure.include: health,info
 
 # integración
 tickets:
-  base-url: http://localhost:8080
+  base-url: ${TICKETS_BASE_URL:http://localhost:8080}

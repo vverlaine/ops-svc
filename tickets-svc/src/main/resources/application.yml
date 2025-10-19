@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
   error:
     include-stacktrace: always
     include-message: always
@@ -54,6 +54,6 @@ resilience4j:
         permitted-number-of-calls-in-half-open-state: 3
 
 contacts:
-  base-url: http://localhost:8089
+  base-url: ${CONTACTS_BASE_URL:http://localhost:8089}
 customers:
-  base-url: http://localhost:8081
+  base-url: ${CUSTOMERS_BASE_URL:http://localhost:8081}

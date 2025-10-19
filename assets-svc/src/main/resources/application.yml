@@ -1,8 +1,8 @@
 server:
-  port: 8087
+  port: ${PORT:8080}
 
 spring:
-  ddatasource:
+  datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
@@ -26,4 +26,4 @@ logging:
     com.proyecto.ops.assets.clients.CustomersClient: info
 
 customers:
-  base-url: http://localhost:8081
+  base-url: ${CUSTOMERS_BASE_URL:http://localhost:8081}

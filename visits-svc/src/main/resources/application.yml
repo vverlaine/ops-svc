@@ -20,7 +20,7 @@ spring:
       mail.smtp.starttls.enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:false}
 
 server:
-  port: 8094
+  port: ${PORT:8080}
 
 management:
   endpoints:

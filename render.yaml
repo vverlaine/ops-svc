@@ -1,0 +1,200 @@
+databases:
+  - name: ops-postgres
+    plan: free
+    databaseName: opsdb
+    user: opsuser
+
+services:
+  # ──────────────────────────────────────────────────────────────────────────
+  # customers-svc
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: customers-svc
+    rootDir: customers-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :customers-svc:clean :customers-svc:bootJar -x test
+      cp customers-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: ops-postgres
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: ops-postgres
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: ops-postgres
+          property: password
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # technicians-svc
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: technicians-svc
+    rootDir: technicians-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :technicians-svc:clean :technicians-svc:bootJar -x test
+      cp technicians-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # contacts-svc
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: contacts-svc
+    rootDir: contacts-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :contacts-svc:clean :contacts-svc:bootJar -x test
+      cp contacts-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # sites-svc
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: sites-svc
+    rootDir: sites-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :sites-svc:clean :sites-svc:bootJar -x test
+      cp sites-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # tickets-svc
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: tickets-svc
+    rootDir: tickets-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :tickets-svc:clean :tickets-svc:bootJar -x test
+      cp tickets-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      # Base URLs de dependencias (ajústalos al subdominio que Render asigne)
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
+      - key: TECHNICIANS_BASE_URL
+        value: https://technicians-svc.onrender.com
+      - key: SITES_BASE_URL
+        value: https://sites-svc.onrender.com
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # work-orders-svc
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: work-orders-svc
+    rootDir: work-orders-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :work-orders-svc:clean :work-orders-svc:bootJar -x test
+      cp work-orders-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: TICKETS_BASE_URL
+        value: https://tickets-svc.onrender.com
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # assets-svc
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: assets-svc
+    rootDir: assets-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :assets-svc:clean :assets-svc:bootJar -x test
+      cp assets-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: CUSTOMERS_BASE_URL           # tu app.yml lee customers.base-url
+        value: https://customers-svc.onrender.com
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # visits-svc  (incluye email)
+  # ──────────────────────────────────────────────────────────────────────────
+  - type: web
+    name: visits-svc
+    rootDir: visits-svc
+    runtime: image
+    buildCommand: |
+      ./gradlew :visits-svc:clean :visits-svc:bootJar -x test
+      cp visits-svc/build/libs/*.jar app.jar
+    startCommand: java -jar app.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      # correo de visitas (usa Mailtrap, Amazon SES o lo que tengas)
+      - key: MAIL_HOST
+        value: sandbox.smtp.mailtrap.io
+      - key: MAIL_PORT
+        value: 2525
+      - key: MAIL_USERNAME           # crea como Secret en Render
+        sync: false
+      - key: MAIL_PASSWORD           # crea como Secret en Render
+        sync: false
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
+        value: "true"
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+        value: "true"
+      - key: VISITS_MAIL_FROM
+        value: no-reply@visits.local
+      - key: VISITS_MAIL_TO          # destinatario por defecto
+        value: test@demo.local
+      # dependencias
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
+      - key: TECHNICIANS_BASE_URL
+        value: https://technicians-svc.onrender.com
+      - key: SITES_BASE_URL
+        value: https://sites-svc.onrender.com

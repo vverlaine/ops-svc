@@ -1,5 +1,5 @@
 server:
-  port: 8092
+  port: ${PORT:8080}
 
 spring:
   datasource:
@@ -16,4 +16,4 @@ management:
         include: health,info
 
 auth:
-  base-url: http://localhost:8099
+  base-url: ${AUTH_BASE_URL:http://localhost:8089}

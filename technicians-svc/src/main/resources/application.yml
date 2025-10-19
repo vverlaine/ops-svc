@@ -1,5 +1,5 @@
 server:
-  port: 8091
+  port: ${PORT:8080}
 
 spring:
   datasource:
@@ -20,7 +20,7 @@ spring:
     default-schema: app
 
 customers:
-  base-url: http://localhost:8081
+  base-url: ${CUSTOMERS_BASE_URL:http://localhost:8081}
 
 auth:
-  base-url: http://localhost:8099
+  base-url: ${AUTH_BASE_URL:http://localhost:8099}
