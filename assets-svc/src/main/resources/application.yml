@@ -1,13 +1,39 @@
+# -----------------------------------------------------------------------------
+# application.yml
+# -----------------------------------------------------------------------------
+# Propósito:
+#   Archivo principal de configuración de Spring Boot para el microservicio
+#   "assets-svc". Define puertos, configuración de base de datos, logging,
+#   migraciones Flyway y propiedades externas de servicios dependientes.
+#
+# Contexto:
+#   - Este archivo es leído automáticamente al iniciar la aplicación.
+#   - Permite parametrizar valores mediante variables de entorno.
+# -----------------------------------------------------------------------------
+
+# Configuración del servidor embebido (por defecto, Tomcat)
+# ---------------------------------------------------------
+# Configuración del servidor HTTP
+# ---------------------------------------------------------
 server:
   port: ${PORT:8080}
   forward-headers-strategy: native
 
+# ---------------------------------------------------------
+# Configuración de Spring (base de datos, JPA y Flyway)
+# ---------------------------------------------------------
 spring:
   datasource:
+    # Configuración del origen de datos JDBC (PostgreSQL, MySQL, etc.)
+    # Se inyectan las credenciales mediante variables de entorno.
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
+    # Configuración de JPA e Hibernate
+    # - ddl-auto: define el comportamiento del esquema (validate evita recreación)
+    # - default_schema: define el esquema por defecto (app)
+    # - open-in-view: desactiva el patrón Open Session in View
     hibernate:
       ddl-auto: validate
     properties:
@@ -16,19 +42,34 @@ spring:
         format_sql: true
     open-in-view: false
   flyway:
+    # Configuración de Flyway para control de versiones del esquema de BD
+    # Las migraciones se ejecutan desde classpath:db/migration
     enabled: true
     schemas: app
     default-schema: app
     locations: classpath:db/migration
 
+# ---------------------------------------------------------
+# Configuración de niveles de log
+# ---------------------------------------------------------
+# Define niveles específicos para Hibernate y el cliente de customers.
 logging:
   level:
     org.hibernate.SQL: debug
     com.proyecto.ops.assets.clients.CustomersClient: info
 
+# ---------------------------------------------------------
+# Configuración del servicio externo "customers"
+# ---------------------------------------------------------
+# Define la URL base para el microservicio de clientes.
+# Puede sobrescribirse con la variable de entorno CUSTOMERS_BASE_URL.
 customers:
   base-url: ${CUSTOMERS_BASE_URL:http://localhost:8081}
 
+# ---------------------------------------------------------
+# Configuración de endpoints de monitoreo y salud
+# ---------------------------------------------------------
+# Habilita /actuator/health e /actuator/info para verificación de estado.
 management:
   endpoints:
     web:
