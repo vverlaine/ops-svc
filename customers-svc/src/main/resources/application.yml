@@ -1,23 +1,58 @@
+# -----------------------------------------------------------------------------
+# application.yml
+# -----------------------------------------------------------------------------
+# Propósito:
+#   Archivo de configuración principal del microservicio "customers-svc".
+#   Define parámetros de servidor, conexión a base de datos, serialización JSON,
+#   endpoints de monitoreo y configuración del servicio de autenticación.
+#
+# Contexto:
+#   - Spring Boot carga automáticamente este archivo al iniciar la aplicación.
+#   - Admite variables de entorno para diferentes entornos (dev, test, prod).
+# -----------------------------------------------------------------------------
+
+# ---------------------------------------------------------
+# Configuración del servidor HTTP embebido (Tomcat por defecto)
+# ---------------------------------------------------------
 server:
+  # Puerto en el que se expone el servicio (por defecto 8080 o variable PORT).
   port: ${PORT:8080}
+  # Permite reenviar encabezados HTTP, útil cuando se usa un proxy o balanceador.
   forward-headers-strategy: native
 
+# ---------------------------------------------------------
+# Configuración de Spring (DataSource y serialización JSON)
+# ---------------------------------------------------------
 spring:
   datasource:
+    # URL de conexión a la base de datos (definida mediante variable SPRING_DATASOURCE_URL).
     url: ${SPRING_DATASOURCE_URL}
+    # Credenciales de conexión (variables SPRING_DATASOURCE_USERNAME y SPRING_DATASOURCE_PASSWORD).
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
   jackson:
     serialization:
+      # Configura Jackson para serializar fechas en formato ISO-8601 en lugar de timestamps numéricos.
       WRITE_DATES_AS_TIMESTAMPS: false
+
+# ---------------------------------------------------------
+# Configuración de Actuator (endpoints de monitoreo y salud)
+# ---------------------------------------------------------
 management:
   endpoints:
     web:
       exposure:
+        # Define los endpoints que estarán expuestos públicamente para monitoreo.
         include: health,info
     health:
       probes::
+        # Habilita las sondas de salud (liveness y readiness) para orquestadores como Kubernetes.
         enabled: true
 
+# ---------------------------------------------------------
+# Configuración del servicio de autenticación (auth-svc)
+# ---------------------------------------------------------
+# Define la URL base para las validaciones de token y obtención de usuario.
+# Puede personalizarse con la variable AUTH_BASE_URL.
 auth:
   base-url: ${AUTH_BASE_URL:http://localhost:8089}
