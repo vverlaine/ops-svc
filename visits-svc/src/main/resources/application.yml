@@ -1,10 +1,35 @@
+# -----------------------------------------------------------------------------
+# application.yml
+# -----------------------------------------------------------------------------
+# Propósito:
+#   Archivo principal de configuración del microservicio "visits-svc".
+#
+# Contexto de uso:
+#   - Define parámetros de conexión a la base de datos, configuración de correo,
+#     propiedades de JPA/Hibernate, y puertos del servidor.
+#   - Permite establecer variables de entorno mediante la sintaxis ${VAR:default}.
+#
+# Mantenibilidad:
+#   - Los valores sensibles (usuario, contraseña, URLs) se deben definir en el entorno
+#     y no directamente en el archivo.
+#   - Este archivo puede ser sobrescrito por perfiles específicos (application-dev.yml, etc.).
+# -----------------------------------------------------------------------------
+
+# ------------------------------------------------------------------
+# Configuración principal de Spring Boot y sus módulos (JPA, Mail, etc.)
+# ------------------------------------------------------------------
 spring:
   application:
     name: visits-svc
+  # Configuración de la fuente de datos (Base de Datos)
+  # Se parametriza para permitir diferentes entornos (dev, prod, etc.)
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+  # Configuración de JPA e Hibernate
+  # - "ddl-auto: validate" asegura que el esquema coincida con las entidades sin modificarlas.
+  # - "open-in-view: false" mejora el rendimiento al cerrar sesiones tras cada transacción.
   jpa:
     hibernate:
       ddl-auto: validate
@@ -12,6 +37,8 @@ spring:
     properties:
       hibernate.default_schema: app
       hibernate.format_sql: true
+  # Configuración del servidor de correo
+  # Utilizado por el servicio de notificaciones al completar visitas.
   mail:
     host: ${SPRING_MAIL_HOST:localhost}
     port: ${SPRING_MAIL_PORT:1025}
@@ -20,16 +47,25 @@ spring:
     properties:
       mail.smtp.auth: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH:false}
       mail.smtp.starttls.enable: ${SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE:false}
+  # Configuración de Flyway para migraciones automáticas de base de datos.
+  # Administra el esquema 'app' y aplica scripts desde 'classpath:db/migration'.
   flyway:
     enabled: true
     schemas: app
     default-schema: app
     locations: classpath:db/migration
 
+# ------------------------------------------------------------------
+# Configuración del servidor embebido (Tomcat).
+# Define el puerto y estrategia de reenvío de encabezados.
+# ------------------------------------------------------------------
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
 
+# ------------------------------------------------------------------
+# Configuración de Actuator (monitoreo y endpoints de salud del sistema).
+# ------------------------------------------------------------------
 management:
   endpoint:
     health:
@@ -45,11 +81,18 @@ management:
       exposure:
         include: health,info,metrics
 
+# ------------------------------------------------------------------
+# Configuración del nivel de logging para Spring Boot y sus componentes.
+# ------------------------------------------------------------------
 logging:
   level:
     root: INFO
     org.springframework.security: INFO
 
+# ------------------------------------------------------------------
+# Configuración específica del microservicio "visits-svc".
+# Define los correos por defecto para las notificaciones automáticas.
+# ------------------------------------------------------------------
 visits:
   mail:
     default_to: ${VISITS_MAIL_DEFAULT_TO:devnull@example.com}
