@@ -1,12 +1,48 @@
+# -----------------------------------------------------------------------------
+# application.yml
+# -----------------------------------------------------------------------------
+# Propósito:
+#   Archivo principal de configuración del microservicio "work-orders-svc".
+#
+# Contexto de uso:
+#   - Define la configuración del servidor, conexión a base de datos,
+#     comportamiento de JPA/Hibernate, endpoints de monitoreo y variables
+#     para la integración con otros microservicios (por ejemplo, tickets-svc).
+#
+# Mantenibilidad:
+#   - Los valores sensibles (URL, usuario, contraseña) deben definirse mediante
+#     variables de entorno y nunca directamente en este archivo.
+#   - Los entornos (dev, qa, prod) pueden sobreescribir valores mediante archivos
+#     específicos como application-dev.yml o application-prod.yml.
+# -----------------------------------------------------------------------------
+
+# ------------------------------------------------------------------
+# Configuración del servidor embebido (Tomcat)
+# ------------------------------------------------------------------
+# - port: define el puerto donde se ejecuta la aplicación.
+# - forward-headers-strategy: controla cómo se procesan los encabezados
+#   HTTP reenviados cuando se usa un proxy inverso o balanceador de carga.
+# ------------------------------------------------------------------
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
 
+# ------------------------------------------------------------------
+# Configuración principal de Spring Boot y sus módulos.
+# Incluye la base de datos, JPA, Hibernate y Flyway.
+# ------------------------------------------------------------------
+
 spring:
+  # Configuración de la conexión a la base de datos.
+  # Los valores son parametrizados para poder variarlos por entorno.
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
+  # Configuración de JPA e Hibernate.
+  # - ddl-auto: "validate" asegura que el esquema coincida con las entidades.
+  # - format_sql: mejora la legibilidad del SQL en los logs.
+  # - default_schema: indica el esquema por defecto en la base de datos.
   jpa:
     hibernate:
       ddl-auto: validate
@@ -15,8 +51,14 @@ spring:
         default_schema: app
         jdbc.time_zone: UTC
         format_sql: true
+  # Configuración de Flyway (migraciones de base de datos).
+  # En este servicio está deshabilitado porque usamos un esquema existente.
   flyway:
     enabled: false   # usamos tu DDL existente, sin migraciones aquí
+
+# ------------------------------------------------------------------
+# Configuración de Actuator (monitoreo y endpoints de salud del sistema).
+# ------------------------------------------------------------------
 
 management:
   endpoints:
@@ -24,6 +66,11 @@ management:
       exposure:
         include: health,info
 
-# integración
+# ------------------------------------------------------------------
+# Configuración de integración con el microservicio "tickets-svc".
+# ------------------------------------------------------------------
+# - base-url: define la URL base para las peticiones al servicio de tickets.
+#   Puede configurarse mediante variable de entorno TICKETS_BASE_URL.
+# ------------------------------------------------------------------
 tickets:
   base-url: ${TICKETS_BASE_URL:http://localhost:8080}
