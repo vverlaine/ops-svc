@@ -1,9 +1,6 @@
-# Etapa de build
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /workspace
-
 COPY . .
-
 RUN ./gradlew :customers-svc:clean :customers-svc:bootJar -x test
 
 FROM eclipse-temurin:17-jre

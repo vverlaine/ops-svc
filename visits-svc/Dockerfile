@@ -1,23 +1,10 @@
-# ====== Build ======
-FROM gradle:8.10.2-jdk17 AS builder
-WORKDIR /app
+FROM eclipse-temurin:17-jdk AS build
+WORKDIR /workspace
 COPY . .
-# Solo construimos el submódulo visits-svc para rapidez
-RUN gradle :visits-svc:bootJar --no-daemon
+RUN ./gradlew :visits-svc:clean :visits-svc:bootJar -x test
 
-# ====== Runtime ======
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:17-jre
 WORKDIR /app
-
-# Script de entrypoint: convierte DATABASE_URL a SPRING_DATASOURCE_URL y arranca
-COPY visits-svc/entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
-
-# Copiamos el jar
-COPY --from=builder /app/visits-svc/build/libs/*.jar /app/app.jar
-
-# Render expone el puerto que escucha el proceso en el contenedor
-ENV PORT=8094
-EXPOSE 8094
-
-ENTRYPOINT ["/app/entrypoint.sh"]
+COPY visits-svc/build/libs/*.jar app.jar
+EXPOSE 8080
+ENTRYPOINT ["java","-jar","/app/app.jar"]

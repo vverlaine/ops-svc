@@ -27,3 +27,172 @@ services:
         fromDatabase: { name: ops-postgres, property: password }
       - key: AUTH_BASE_URL
         value: https://tu-auth-en-render.onrender.com
+
+  - type: web
+    name: technicians-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: technicians-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
+      - key: AUTH_BASE_URL
+        value: https://tu-auth-en-render.onrender.com
+
+  - type: web
+    name: contacts-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: contacts-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
+
+  - type: web
+    name: sites-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: sites-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+
+  - type: web
+    name: tickets-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: tickets-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
+      - key: CONTACTS_BASE_URL
+        value: https://contacts-svc.onrender.com
+
+  - type: web
+    name: assets-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: assets-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
+
+  - type: web
+    name: work-orders-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: work-orders-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: TICKETS_BASE_URL
+        value: https://tickets-svc.onrender.com
+
+  - type: web
+    name: visits-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: visits-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: SPRING_MAIL_HOST
+        value: sandbox.smtp.mailtrap.io
+      - key: SPRING_MAIL_PORT
+        value: 2525
+      - key: SPRING_MAIL_USERNAME
+        sync: false
+      - key: SPRING_MAIL_PASSWORD
+        sync: false
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
+        value: "true"
+      - key: SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+        value: "true"
+      - key: VISITS_MAIL_FROM
+        value: no-reply@visits.local
+      - key: VISITS_MAIL_DEFAULT_TO
+        value: test@demo.local
+      - key: CUSTOMERS_BASE_URL
+        value: https://customers-svc.onrender.com
+      - key: TECHNICIANS_BASE_URL
+        value: https://technicians-svc.onrender.com
+      - key: SITES_BASE_URL
+        value: https://sites-svc.onrender.com
