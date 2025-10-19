@@ -1,32 +1,70 @@
+# -----------------------------------------------------------------------------
+# application.yml
+# -----------------------------------------------------------------------------
+# Propósito:
+#   Archivo principal de configuración del microservicio "sites-svc".
+#   Define la configuración del servidor, base de datos, JPA, Flyway,
+#   logging y endpoints de monitoreo (Actuator).
+#
+# Contexto:
+#   - Este archivo es leído automáticamente al iniciar la aplicación Spring Boot.
+#   - Permite configurar parámetros dinámicos mediante variables de entorno.
+# -----------------------------------------------------------------------------
+
+# ---------------------------------------------------------
+# Configuración del servidor embebido (Tomcat por defecto)
+# ---------------------------------------------------------
 server:
+  # Puerto donde se ejecuta el servicio (por defecto 8080, puede sobreescribirse con la variable PORT).
   port: ${PORT:8080}
+  # Permite reenviar encabezados HTTP, útil en despliegues detrás de balanceadores de carga o proxies.
   forward-headers-strategy: native
 
+# ---------------------------------------------------------
+# Configuración de Spring (DataSource, JPA y Flyway)
+# ---------------------------------------------------------
 spring:
   datasource:
+    # URL de conexión a la base de datos (definida mediante la variable SPRING_DATASOURCE_URL).
     url: ${SPRING_DATASOURCE_URL}
+    # Credenciales de conexión (variables SPRING_DATASOURCE_USERNAME y SPRING_DATASOURCE_PASSWORD).
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
+      # Estrategia de Hibernate para el manejo del esquema.
+      # "validate" asegura que las tablas existentes coincidan con las entidades sin alterarlas.
       ddl-auto: validate
+    # Desactiva el patrón "Open Session in View" para mejorar el rendimiento y evitar fugas de memoria.
     open-in-view: false
   flyway:
+    # Habilita las migraciones automáticas de base de datos con Flyway.
     enabled: true
+    # Define el esquema de base de datos "app" donde se aplicarán las migraciones.
     schemas: app
     default-schema: app
+    # Ruta donde se ubican los scripts de migración SQL dentro del proyecto.
     locations: classpath:db/migration
 
+# ---------------------------------------------------------
+# Configuración de logging
+# ---------------------------------------------------------
 logging:
   level:
+    # Activa el log detallado de las sentencias SQL ejecutadas por Hibernate (modo debug).
     org.hibernate.SQL: debug
 
+# ---------------------------------------------------------
+# Configuración de endpoints de monitoreo (Actuator)
+# ---------------------------------------------------------
 management:
   endpoints:
     web:
       exposure:
+        # Expone los endpoints de salud (health) e información (info) para monitoreo.
         include: health,info
   endpoint:
     health:
       probes:
+        # Habilita las sondas de liveness y readiness (usadas en Kubernetes para verificar el estado del servicio).
         enabled: true
