@@ -1,3 +1,40 @@
+/*
+ * -----------------------------------------------------------------------------
+ * Ticket.java
+ * -----------------------------------------------------------------------------
+ * Propósito:
+ *   Representa la entidad JPA correspondiente a la tabla `app.tickets`, que
+ *   almacena los datos de cada ticket dentro del microservicio "tickets-svc".
+ *
+ * Contexto de uso:
+ *   - Se utiliza para gestionar incidencias, solicitudes o tareas registradas
+ *     por los clientes.
+ *   - Cada ticket pertenece a un cliente (customerId) y puede estar asociado
+ *     a un sitio, activo o persona que realiza la solicitud.
+ *
+ * Diseño:
+ *   - Anotada con @Entity y @Table(schema = "app", name = "tickets").
+ *   - Utiliza UUID como identificador primario.
+ *   - Incluye los siguientes atributos principales:
+ *       • id           → Identificador único del ticket.
+ *       • title        → Título o resumen breve.
+ *       • description  → Descripción del ticket (opcional).
+ *       • status       → Estado actual del ticket (enum app.ticket_status).
+ *       • priority     → Prioridad asignada (enum app.ticket_priority).
+ *       • customerId   → Referencia al cliente asociado.
+ *       • siteId       → Referencia opcional al sitio del cliente.
+ *       • assetId      → Referencia opcional al activo relacionado.
+ *       • requestedBy  → Usuario que solicitó la creación del ticket.
+ *       • createdBy    → Usuario responsable de registrar el ticket.
+ *       • createdAt    → Fecha y hora de creación (timestamptz).
+ *
+ * Mantenibilidad:
+ *   - Si se agregan nuevas relaciones (como asignación a técnicos o seguimiento),
+ *     deben añadirse los campos y relaciones correspondientes.
+ *   - El método @PrePersist garantiza valores por defecto para estado, prioridad
+ *     y fecha de creación antes de persistir el registro.
+ * -----------------------------------------------------------------------------
+ */
 package com.proyecto.ops.tickets.model;
 
 import java.time.OffsetDateTime;
@@ -17,6 +54,11 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * Entidad JPA que representa un ticket registrado en el sistema.
+ *
+ * Mapeada a la tabla `app.tickets`.
+ */
 @Entity
 @Table(schema = "app", name = "tickets")
 public class Ticket {
@@ -24,50 +66,61 @@ public class Ticket {
     public Ticket() {
     }
 
+    // Identificador único del ticket (clave primaria, generado automáticamente).
     @Id
     @UuidGenerator
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID id;
 
+    // Título o nombre del ticket (obligatorio, máximo 200 caracteres).
     @NotBlank
     @Column(nullable = false, length = 200)
     private String title;
 
+    // Descripción detallada del ticket (opcional, almacenada como texto).
     @Column(columnDefinition = "text")
     private String description;
 
+    // Estado actual del ticket (valores definidos en el enum TicketStatus).
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "status", columnDefinition = "app.ticket_status", nullable = false)
     private TicketStatus status;
 
+    // Nivel de prioridad del ticket (valores definidos en el enum TicketPriority).
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     @Column(name = "priority", columnDefinition = "app.ticket_priority", nullable = false)
     private TicketPriority priority;
 
+    // Identificador del cliente asociado al ticket (no puede ser nulo).
     @NotNull
     @JdbcTypeCode(SqlTypes.UUID)
     @Column(name = "customer_id", nullable = false)
     private UUID customerId;
 
+    // Identificador del sitio relacionado (opcional, puede ser nulo).
     @JdbcTypeCode(SqlTypes.UUID)
-    @Column(name = "site_id")           // <-- NUEVO
+    @Column(name = "site_id")
     private UUID siteId;
 
+    // Identificador del activo relacionado con el ticket (opcional).
     @JdbcTypeCode(SqlTypes.UUID)
     @Column(name = "asset_id")
     private UUID assetId;
 
+    // Usuario que solicitó la creación del ticket (opcional).
     @JdbcTypeCode(SqlTypes.UUID)
     @Column(name = "requested_by")
     private UUID requestedBy;
 
+    // Usuario que registró el ticket (obligatorio).
     // En tu base actual este campo es TEXT; mantenemos String.
     @NotBlank
     @Column(name = "created_by", nullable = false, length = 200)
     private String createdBy;
 
+    // Fecha y hora de creación del ticket (asignada automáticamente).
     @Column(name = "created_at", nullable = false, columnDefinition = "timestamptz")
     private OffsetDateTime createdAt = OffsetDateTime.now();
 
@@ -160,8 +213,15 @@ public class Ticket {
         this.createdAt = createdAt;
     }
 
+    /**
+     * Asigna valores por defecto antes de persistir el ticket.
+     * - Si el estado no está definido, se asigna OPEN.
+     * - Si la prioridad no está definida, se asigna MEDIUM.
+     * - Si la fecha de creación es nula, se asigna el momento actual.
+     */
     @PrePersist
     void prePersistDefaults() {
+        // Verifica y aplica valores por defecto antes de insertar el registro en la base de datos.
         if (this.status == null) {
             this.status = TicketStatus.OPEN;
         }
