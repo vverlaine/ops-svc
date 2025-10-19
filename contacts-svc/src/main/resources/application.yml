@@ -1,28 +1,67 @@
+# -----------------------------------------------------------------------------
+# application.yml
+# -----------------------------------------------------------------------------
+# Propósito:
+#   Archivo de configuración principal del microservicio "contacts-svc".
+#   Define parámetros del servidor, conexión a base de datos, migraciones,
+#   logging, endpoints de monitoreo y configuración de servicios externos.
+#
+# Contexto:
+#   - Es leído automáticamente por Spring Boot al iniciar la aplicación.
+#   - Admite variables de entorno para configuración flexible en distintos entornos
+#     (dev, test, prod).
+# -----------------------------------------------------------------------------
+
+# ---------------------------------------------------------
+# Configuración del servidor HTTP embebido (Tomcat por defecto)
+# ---------------------------------------------------------
 server:
+  # Puerto donde se expone la aplicación (por defecto 8080, puede ser sobrescrito con PORT).
   port: ${PORT:8080}
+  # Permite reenviar encabezados HTTP (útil para balanceadores o proxies inversos).
   forward-headers-strategy: native
 
+# ---------------------------------------------------------
+# Configuración de Spring (DataSource, JPA y Flyway)
+# ---------------------------------------------------------
 spring:
   datasource:
+    # URL de conexión a la base de datos (definida mediante variable de entorno SPRING_DATASOURCE_URL).
     url: ${SPRING_DATASOURCE_URL}
+    # Credenciales de acceso a la base de datos (variables de entorno SPRING_DATASOURCE_USERNAME y SPRING_DATASOURCE_PASSWORD).
     username: ${SPRING_DATASOURCE_USERNAME}
     password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
+    # Configuración de Hibernate:
+    # - validate: valida el esquema existente sin modificarlo.
     hibernate:
       ddl-auto: validate
     properties:
+      # Define el esquema por defecto utilizado por las entidades JPA.
       hibernate.default_schema: app
       hibernate.show_sql: false
+      # Ajusta la zona horaria a UTC para coherencia temporal.
       hibernate.jdbc.time_zone: UTC
   flyway:
+    # Configuración de migraciones Flyway.
+    # Controla versiones del esquema de base de datos en el esquema "app".
     enabled: true
     schemas: app
     default-schema: app
 
+# ---------------------------------------------------------
+# Configuración del microservicio externo "customers"
+# ---------------------------------------------------------
+# Define la URL base del servicio de clientes, usada por CustomersClient.
+# Puede configurarse mediante la variable CUSTOMERS_BASE_URL.
 customers:
   base-url: ${CUSTOMERS_BASE_URL:http://localhost:8081}
 
-
+# ---------------------------------------------------------
+# Configuración de endpoints de monitoreo (Actuator)
+# ---------------------------------------------------------
+# Permite exponer información de salud y metadatos del servicio.
+# Incluye health e info para integraciones con Kubernetes u orquestadores.
 management:
   endpoints:
     web:
