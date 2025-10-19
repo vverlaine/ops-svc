@@ -22,13 +22,16 @@ public class VisitServiceImpl implements VisitService {
     private final VisitRepository visitRepository;
     private final VisitEventRepository eventRepository;
     private final VisitNoteRepository noteRepository;
+    private final VisitEmailService visitEmailService;
 
     public VisitServiceImpl(VisitRepository visitRepository,
                             VisitEventRepository eventRepository,
-                            VisitNoteRepository noteRepository) {
+                            VisitNoteRepository noteRepository,
+                            VisitEmailService visitEmailService) {
         this.visitRepository = visitRepository;
         this.eventRepository = eventRepository;
         this.noteRepository = noteRepository;
+        this.visitEmailService = visitEmailService;
     }
 
     @Override
@@ -86,6 +89,12 @@ public class VisitServiceImpl implements VisitService {
         Visit saved = visitRepository.save(v);
         // workSummary podría ir en payload
         eventRepository.save(VisitEvent.of(saved.getId(), "VisitCompleted", actorId, lat, lng, workSummary));
+        // Disparar notificación por correo al completar la visita
+        try {
+            visitEmailService.onVisitCompleted(saved);
+        } catch (Exception ex) {
+            // No romper el flujo de checkout si el correo falla
+        }
         return saved;
     }
 
