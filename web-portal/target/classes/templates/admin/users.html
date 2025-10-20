@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Usuarios | Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+        h1 { margin-bottom: 8px; }
+        .subtitle { color:#666; margin-bottom: 24px; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { text-align: left; background: #f7f7f7; }
+        .actions a { margin-right: 8px; }
+        nav a { margin-right: 12px; }
+    </style>
+</head>
+<body>
+<nav>
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <a th:href="@{/admin}">Admin</a>
+    <a th:href="@{/admin/users}">Usuarios</a>
+    <a th:href="@{/logout}">Salir</a>
+</nav>
+
+<h1>Gestión de usuarios</h1>
+<div class="subtitle">Solo visible para <strong>ROLE_ADMIN</strong></div>
+
+<div>
+    <!-- Ejemplo de tabla estática; cámbiala cuando conectemos al backend -->
+    <table>
+        <thead>
+        <tr>
+            <th>Email</th>
+            <th>Nombre</th>
+            <th>Rol</th>
+            <th class="actions">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>admin@demo.com</td>
+            <td>Admin Demo</td>
+            <td>ADMIN</td>
+            <td class="actions">
+                <a href="#">Editar</a>
+                <a href="#">Desactivar</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

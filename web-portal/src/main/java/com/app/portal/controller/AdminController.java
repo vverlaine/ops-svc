@@ -10,14 +10,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminController {
 
+    @GetMapping
+    public String adminHome() {
+        // Página principal de admin: /templates/admin/index.html
+        return "admin/index";
+    }
+
     @GetMapping("/users")
-    public String listarUsuarios() {
-        // Carga de datos si necesitas -> model.addAttribute(...)
+    public String users() {
+        // Esta es la vista que fallaba: /templates/admin/users.html
         return "admin/users";
     }
 
     @GetMapping("/config")
-    public String configSistema() {
-        return "admin/config";
+    public String config() {
+        // Si tienes /templates/fragments/config.html y quieres usarlo como página,
+        // crea también /templates/admin/config.html o cambia este return.
+        return "admin/config"; // crea templates/admin/config.html si aún no existe
     }
 }
