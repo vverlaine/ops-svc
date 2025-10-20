@@ -6,5 +6,6 @@
 /Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/security/RemoteAuthProvider.java
 /Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/security/SecurityConfig.java
 /Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/service/StatusService.java
+/Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/visits/VisitsClient.java
 /Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/web/DashboardController.java
 /Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/web/LoginController.java

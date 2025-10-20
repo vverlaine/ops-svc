@@ -1,35 +1,24 @@
-package com.app.portal.web;
+package com.app.portal.controller;
 
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
+import com.app.portal.visits.VisitsClient;
+
 @Controller
 public class DashboardController {
 
-    @GetMapping({"/", "/dashboard"})
-    public String dashboard(Authentication auth, Model model) {
-        model.addAttribute("username", auth.getName());
-        model.addAttribute("roles", auth.getAuthorities());
+    private final VisitsClient visitsClient;
+
+    public DashboardController(VisitsClient visitsClient) {
+        this.visitsClient = visitsClient;
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(Model model) {
+        String visitas = visitsClient.getVisitsStatus();
+        model.addAttribute("visitas", visitas);
         return "dashboard";
-    }
-
-    @GetMapping("/admin")
-    public String admin(Authentication auth, Model model) {
-        model.addAttribute("username", auth.getName());
-        return "admin";
-    }
-
-    @GetMapping("/supervisor")
-    public String supervisor(Authentication auth, Model model) {
-        model.addAttribute("username", auth.getName());
-        return "supervisor";
-    }
-
-    @GetMapping("/tecnico")
-    public String tecnico(Authentication auth, Model model) {
-        model.addAttribute("username", auth.getName());
-        return "tecnico";
     }
 }

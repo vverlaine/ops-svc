@@ -1,10 +1,11 @@
+com/app/portal/controller/DashboardController.class
 com/app/portal/config/WebClientConfig.class
 com/app/portal/auth/LoginRequest.class
 com/app/portal/WebPortalApplication.class
 com/app/portal/security/RemoteAuthProvider.class
 com/app/portal/web/LoginController.class
+com/app/portal/visits/VisitsClient.class
 com/app/portal/auth/LoginResponse.class
 com/app/portal/auth/AuthClient.class
 com/app/portal/service/StatusService.class
 com/app/portal/security/SecurityConfig.class
-com/app/portal/web/DashboardController.class

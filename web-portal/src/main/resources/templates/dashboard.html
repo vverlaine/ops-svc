@@ -1,16 +1,91 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 <head>
   <meta charset="UTF-8" />
   <title>Dashboard</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; background:#0b1220; color:#e6ebff; }
+    header { padding:16px 20px; border-bottom:1px solid #26304a; display:flex; align-items:center; justify-content:space-between; }
+    .role { opacity:.8; font-size:14px; }
+    .wrap { max-width:1100px; margin:22px auto; padding:0 20px; display:grid; gap:16px; grid-template-columns: repeat(12, 1fr); }
+    .card { grid-column: span 12; background: rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12); border-radius:12px; padding:16px; }
+    .two { grid-column: span 6; }
+    .three { grid-column: span 4; }
+    h2,h3 { margin:.2rem 0 .6rem 0; }
+    pre { white-space:pre-wrap; word-break:break-word; background: rgba(0,0,0,.25); padding:10px; border-radius:8px; }
+    a.btn { display:inline-block; padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,.18); text-decoration:none; color:#e6ebff; }
+    a.btn:hover { background: rgba(255,255,255,.06); }
+    @media (max-width: 900px){ .two,.three{ grid-column: span 12; } }
+  </style>
 </head>
 <body>
-  <div th:replace="~{fragments/navbar :: body}"></div>
+  <header>
+    <div>
+      <strong>Panel</strong>
+      <div class="role">Bienvenido, <span th:text="${username}">usuario</span> — <span th:text="${roles}">ROLE_?</span></div>
+    </div>
+    <nav>
+      <a class="btn" th:href="@{/logout}">Salir</a>
+    </nav>
+  </header>
 
-  <h2>Bienvenido, <span th:text="${username}">usuario</span></h2>
-  <p>Roles: <span th:text="${roles}">[ROLE_...]</span></p>
-  <p th:if="${gatewayStatus}">Gateway: <span th:text="${gatewayStatus}">desconocido</span></p>
+  <div class="wrap">
+    <!-- BLOQUE COMÚN -->
+    <section class="card two">
+      <h2>Estado de servicios</h2>
+      <h3>Visitas</h3>
+      <pre th:text="${visitsStatus}">Cargando…</pre>
+    </section>
 
-  <div>Contenido</div>
+    <!-- SOLO ADMIN -->
+    <section class="card three" sec:authorize="hasRole('ADMIN')">
+      <h3>Administración</h3>
+      <p>Accesos rápidos:</p>
+      <p>
+        <a class="btn" th:href="@{/admin/users}">Usuarios</a>
+        <a class="btn" th:href="@{/admin/audit}">Auditoría</a>
+        <a class="btn" th:href="@{/admin/config}">Config</a>
+      </p>
+      <p>KPIs (demo):</p>
+      <pre>Usuarios activos: 128
+Errores 24h: 3
+Latencia media: 112 ms</pre>
+    </section>
+
+    <!-- SOLO OPS -->
+    <section class="card three" sec:authorize="hasRole('OPS')">
+      <h3>Operaciones</h3>
+      <p>Herramientas de soporte:</p>
+      <p>
+        <a class="btn" th:href="@{/ops/health}">Health Check</a>
+        <a class="btn" th:href="@{/ops/logs}">Logs</a>
+        <a class="btn" th:href="@{/ops/queues}">Colas</a>
+      </p>
+      <pre>Deploy: OK
+Gateway: OK
+Auth: OK</pre>
+    </section>
+
+    <!-- SOLO USER -->
+    <section class="card three" sec:authorize="hasRole('USER')">
+      <h3>Mi cuenta</h3>
+      <p>Información básica:</p>
+      <pre>
+Nombre: <span th:text="${username}">Usuario</span>
+Rol: <span th:text="${roles}">ROLE_USER</span>
+      </pre>
+      <a class="btn" th:href="@{/profile}">Editar perfil</a>
+    </section>
+
+    <!-- CUALQUIER ROL: accesos generales -->
+    <section class="card two">
+      <h3>Accesos</h3>
+      <p>
+        <a class="btn" th:href="@{/visits}">Visitas</a>
+        <a class="btn" th:href="@{/reports}">Reportes</a>
+        <a class="btn" th:href="@{/help}">Ayuda</a>
+      </p>
+    </section>
+  </div>
 </body>
 </html>
