@@ -1,23 +1,3 @@
-# -----------------------------------------------------------------------------
-# application.yml
-# -----------------------------------------------------------------------------
-# Propósito:
-#   Archivo principal de configuración del microservicio "tickets-svc".
-#
-# Contexto de uso:
-#   - Define puertos, logging, configuración de base de datos, manejo de errores,
-#     health checks y propiedades de resiliencia (retry y circuit breaker).
-#   - Utiliza variables de entorno para parametrizar URLs, credenciales y puertos.
-#
-# Mantenibilidad:
-#   - Los valores con ${...} pueden sobrescribirse desde el entorno (Docker, Kubernetes, etc.).
-#   - Para entornos productivos, se recomienda reducir el nivel de logs y ajustar los thresholds
-#     de resiliencia.
-# -----------------------------------------------------------------------------
-
-# ------------------------------------------------------------------
-# Configuración del servidor embebido (Tomcat por defecto).
-# ------------------------------------------------------------------
 server:
   port: ${PORT:8080}
   forward-headers-strategy: framework
@@ -25,20 +5,12 @@ server:
     include-stacktrace: always
     include-message: always
 
-# ------------------------------------------------------------------
-# Configuración del nivel de logging.
-# Permite ver SQL generado por Hibernate y peticiones de clientes HTTP.
-# ------------------------------------------------------------------
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql: TRACE
     com.proyecto.ops.tickets.clients.CustomersClient: DEBUG
 
-# ------------------------------------------------------------------
-# Configuración principal de Spring Boot.
-# Incluye conexión a base de datos, JPA y migraciones Flyway.
-# ------------------------------------------------------------------
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -59,9 +31,6 @@ spring:
     default-schema: app
     baseline-on-migrate: true
 
-# ------------------------------------------------------------------
-# Configuración de endpoints de monitoreo y salud (Spring Actuator).
-# ------------------------------------------------------------------
 management:
   endpoints:
     web:
@@ -77,10 +46,6 @@ management:
     readinessstate:
       enabled: true
 
-# ------------------------------------------------------------------
-# Configuración de Resilience4j para reintentos y circuit breakers.
-# Mejora la tolerancia a fallos en llamadas a servicios externos.
-# ------------------------------------------------------------------
 resilience4j:
   retry:
     instances:
@@ -99,11 +64,6 @@ resilience4j:
         wait-duration-in-open-state: 10s
         permitted-number-of-calls-in-half-open-state: 3
 
-# ------------------------------------------------------------------
-# Configuración de URLs base para servicios externos.
-# contacts → Microservicio de contactos.
-# customers → Microservicio de clientes.
-# ------------------------------------------------------------------
 contacts:
   base-url: ${CONTACTS_BASE_URL:http://localhost:8080}
 customers:
