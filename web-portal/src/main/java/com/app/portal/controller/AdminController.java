@@ -17,45 +17,20 @@ public class AdminController {
     private final AuthClient auth;
     private final CurrentUser current;
 
-    // Esta clase es tu "form" del HTML con getters/setters (usa la que ya tienes si está en otro paquete)
     public static class CreateUserForm {
-
         private String email;
         private String name;
         private String role;
         private String password;
 
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getRole() {
-            return role;
-        }
-
-        public void setRole(String role) {
-            this.role = role;
-        }
-
-        public String getPassword() {
-            return password;
-        }
-
-        public void setPassword(String password) {
-            this.password = password;
-        }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
     }
 
     public AdminController(AuthClient auth, CurrentUser current) {
@@ -63,16 +38,16 @@ public class AdminController {
         this.current = current;
     }
 
-    // LISTA
+    // LISTA DE USUARIOS
     @GetMapping
     public String users(Model model) {
-        // <- AHORA sin StringBuilder: AuthClient.listUsers() no recibe argumentos
         var users = auth.listUsers();
         model.addAttribute("users", users);
+        model.addAttribute("user", current); // importante para navbar
         return "admin/users";
     }
 
-    // FORM NUEVO
+    // FORMULARIO NUEVO USUARIO
     @GetMapping("/new")
     public String newUser(Model model) {
         if (!model.containsAttribute("form")) {
@@ -80,15 +55,15 @@ public class AdminController {
             f.setRole("USER");
             model.addAttribute("form", f);
         }
+        model.addAttribute("user", current);
         return "admin/users-new";
     }
 
-    // CREAR
+    // CREAR USUARIO
     @PostMapping
     public String create(@ModelAttribute("form") @Valid CreateUserForm form, Model model) {
         var err = new StringBuilder();
 
-        // <- Cambiado: AuthClient.createUser(CreateUserForm, StringBuilder)
         var req = new AuthClient.CreateUserForm(
                 form.getEmail(),
                 form.getName(),
@@ -101,12 +76,14 @@ public class AdminController {
         if (!ok) {
             model.addAttribute("error", err.toString());
             model.addAttribute("form", form);
+            model.addAttribute("user", current);
             return "admin/users-new";
         }
 
         return "redirect:/admin/users";
     }
 
+    // ELIMINAR USUARIO
     @PostMapping("/{userId}/delete")
     public String delete(@PathVariable String userId, Model model) {
         var err = new StringBuilder();
@@ -117,6 +94,7 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    // CAMBIAR ROL DE USUARIO
     @PostMapping("/{userId}/role")
     public String changeRole(@PathVariable String userId, @RequestParam String role, Model model) {
         var err = new StringBuilder();

@@ -24,6 +24,7 @@ public class AuthController {
         this.current = current;
     }
 
+    // Mostrar página de login
     @GetMapping("/login")
     public String loginPage(Model model) {
         if (!model.containsAttribute("loginForm")) {
@@ -32,6 +33,7 @@ public class AuthController {
         return "login";
     }
 
+    // Procesar login
     @PostMapping("/login")
     public String doLogin(@ModelAttribute("loginForm") LoginForm form,
                           RedirectAttributes ra) {
@@ -41,15 +43,19 @@ public class AuthController {
             ra.addFlashAttribute("loginForm", new LoginForm(form.email(), ""));
             return "redirect:/login";
         }
+
+        // Guardar usuario actual en sesión
         current.set(user);
-        // Redirige a algo visible tras login (cámbialo si quieres)
-        return "redirect:/admin/users";
+
+        // Redirigir al dashboard o vista principal
+        return "redirect:/dashboard";
     }
 
+    // Logout
     @PostMapping("/logout")
     public String logout(RedirectAttributes ra) {
         current.clear();
-        ra.addFlashAttribute("info", "Sesión cerrada.");
+        ra.addFlashAttribute("info", "Sesión cerrada correctamente.");
         return "redirect:/login";
     }
 }
