@@ -2,60 +2,41 @@ package com.app.portal.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
 
-  @Bean
-  SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    http
-      .authorizeHttpRequests(auth -> auth
-        .requestMatchers("/css/**","/js/**","/images/**","/favicon.ico","/h2/**").permitAll()
-        .requestMatchers("/login").permitAll()
-        .anyRequest().authenticated()
-      )
-      .formLogin(f -> f
-        .loginPage("/login")
-        .loginProcessingUrl("/login")
-        .usernameParameter("username")
-        .passwordParameter("password")
-        .defaultSuccessUrl("/dashboard", true)
-        .failureUrl("/login?error")
-        .permitAll()
-      )
-      .logout(l -> l
-        .logoutUrl("/logout")
-        .logoutSuccessUrl("/login?logout")
-        .permitAll()
-      )
-      .rememberMe(Customizer.withDefaults())
-      .csrf(csrf -> csrf.ignoringRequestMatchers("/h2/**"))
-      .headers(h -> h.frameOptions(f -> f.sameOrigin()));
+    private final AuthenticationProvider remoteAuth;
 
-    return http.build();
-  }
+    public SecurityConfig(AuthenticationProvider remoteAuth) {
+        this.remoteAuth = remoteAuth;
+    }
 
-  @Bean
-  PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
-  }
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .authenticationProvider(remoteAuth)
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/login").permitAll()
+                .anyRequest().authenticated()
+            )
+            .formLogin(f -> f
+                .loginPage("/login")
+                .defaultSuccessUrl("/dashboard", true)
+                .permitAll()
+            )
+            .logout(l -> l
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/login?logout")
+                .permitAll()
+            );
 
-  // Usuario de prueba: admin / admin123
-  @Bean
-  UserDetailsService userDetailsService(PasswordEncoder encoder) {
-    return new InMemoryUserDetailsManager(
-      User.withUsername("admin")
-          .password(encoder.encode("admin123"))
-          .roles("ADMIN")
-          .build()
-    );
-  }
+        return http.build();
+    }
 }
