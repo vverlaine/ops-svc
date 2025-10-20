@@ -37,14 +37,14 @@
       <pre th:text="${visitsStatus}">Cargando…</pre>
     </section>
 
-    <!-- SOLO ADMIN -->
+    <!-- ADMINISTRADOR -->
     <section class="card three" sec:authorize="hasRole('ADMIN')">
       <h3>Administración</h3>
       <p>Accesos rápidos:</p>
       <p>
         <a class="btn" th:href="@{/admin/users}">Usuarios</a>
-        <a class="btn" th:href="@{/admin/audit}">Auditoría</a>
-        <a class="btn" th:href="@{/admin/config}">Config</a>
+        <a class="btn" th:href="@{/admin/config}">Config. Sistema</a>
+        <a class="btn" th:href="@{/reports}">Reportes</a>
       </p>
       <p>KPIs (demo):</p>
       <pre>Usuarios activos: 128
@@ -52,29 +52,32 @@ Errores 24h: 3
 Latencia media: 112 ms</pre>
     </section>
 
-    <!-- SOLO OPS -->
-    <section class="card three" sec:authorize="hasRole('OPS')">
-      <h3>Operaciones</h3>
-      <p>Herramientas de soporte:</p>
+    <!-- SUPERVISOR -->
+    <section class="card three" sec:authorize="hasRole('SUPERVISOR')">
+      <h3>Supervisor</h3>
+      <p>Planificación y seguimiento:</p>
       <p>
-        <a class="btn" th:href="@{/ops/health}">Health Check</a>
-        <a class="btn" th:href="@{/ops/logs}">Logs</a>
-        <a class="btn" th:href="@{/ops/queues}">Colas</a>
+        <a class="btn" th:href="@{/supervisor/plan}">Planificar visitas</a>
+        <a class="btn" th:href="@{/visits}">Visitas (equipo)</a>
+        <a class="btn" th:href="@{/reports}">Reportes</a>
       </p>
-      <pre>Deploy: OK
-Gateway: OK
-Auth: OK</pre>
+      <pre>Equipo asignado: 6 técnicos
+Visitas hoy: 14
+Retrasos: 2</pre>
     </section>
 
-    <!-- SOLO USER -->
-    <section class="card three" sec:authorize="hasRole('USER')">
-      <h3>Mi cuenta</h3>
-      <p>Información básica:</p>
+    <!-- TÉCNICO -->
+    <section class="card three" sec:authorize="hasRole('TECH')">
+      <h3>Técnico</h3>
+      <p>Mi jornada:</p>
+      <p>
+        <a class="btn" th:href="@{/tech/today}">Visitas de hoy</a>
+        <a class="btn" th:href="@{/visits}">Historial</a>
+      </p>
       <pre>
 Nombre: <span th:text="${username}">Usuario</span>
-Rol: <span th:text="${roles}">ROLE_USER</span>
+Rol: <span th:text="${roles}">ROLE_TECH</span>
       </pre>
-      <a class="btn" th:href="@{/profile}">Editar perfil</a>
     </section>
 
     <!-- CUALQUIER ROL: accesos generales -->
@@ -82,6 +85,7 @@ Rol: <span th:text="${roles}">ROLE_USER</span>
       <h3>Accesos</h3>
       <p>
         <a class="btn" th:href="@{/visits}">Visitas</a>
+        <a class="btn" th:href="@{/clients}">Clientes</a>
         <a class="btn" th:href="@{/reports}">Reportes</a>
         <a class="btn" th:href="@{/help}">Ayuda</a>
       </p>
