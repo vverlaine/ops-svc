@@ -1,26 +1,43 @@
 package com.app.portal.session;
 
+import java.io.Serializable;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
-import com.app.portal.service.AuthClient;
+
+import com.app.portal.dto.UserDto;
 
 @Component
 @SessionScope
-public class CurrentUser {
-    private String email;
-    private String name;
-    private String role;
+public class CurrentUser implements Serializable {
 
-    public boolean isLoggedIn() { return email != null; }
+    private UserDto user;
 
-    public String getEmail() { return email; }
-    public String getName()  { return name; }
-    public String getRole()  { return role; }
-
-    public void set(AuthClient.UserDto dto) {
-        this.email = dto.email();
-        this.name  = dto.name();
-        this.role  = dto.role();
+    public boolean isLoggedIn() {
+        return user != null;
     }
-    public void clear() { this.email = this.name = this.role = null; }
+
+    public UserDto get() {
+        return user;
+    }
+
+    public void set(UserDto user) {
+        this.user = user;
+    }
+
+    public void clear() {
+        this.user = null;
+    }
+
+    public String getRole() {
+        return isLoggedIn() ? user.getRole() : null;
+    }
+
+    public String getEmail() {
+        return isLoggedIn() ? user.getEmail() : null;
+    }
+
+    public String getName() {
+        return isLoggedIn() ? user.getName() : null;
+    }
 }

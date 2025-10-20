@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout}">
+<head>
+    <title>Visitas</title>
+</head>
+<body>
+    <h1>Mis Visitas</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Sitio</th>
+                <th>Estado</th>
+                <th>Inicio Programado</th>
+                <th>Fin Programado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="v : ${visits}">
+                <td th:text="${v.customerId}">cliente</td>
+                <td th:text="${v.siteId}">sitio</td>
+                <td th:text="${v.state}">estado</td>
+                <td th:text="${v.scheduledStartAt}">inicio</td>
+                <td th:text="${v.scheduledEndAt}">fin</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

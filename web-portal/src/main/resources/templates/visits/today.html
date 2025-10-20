@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Visitas de Hoy</title>
+</head>
+<body>
+    <h1>Mis visitas de hoy</h1>
+    <ul>
+        <li th:each="visit : ${visits}">
+            <span th:text="${visit.siteName}">Nombre del sitio</span> -
+            <span th:text="${visit.date}">Fecha</span>
+        </li>
+    </ul>
+</body>
+</html>

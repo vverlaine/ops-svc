@@ -24,7 +24,6 @@ public class AuthController {
         this.current = current;
     }
 
-    // Mostrar página de login
     @GetMapping("/login")
     public String loginPage(Model model) {
         if (!model.containsAttribute("loginForm")) {
@@ -33,10 +32,8 @@ public class AuthController {
         return "login";
     }
 
-    // Procesar login
     @PostMapping("/login")
-    public String doLogin(@ModelAttribute("loginForm") LoginForm form,
-                          RedirectAttributes ra) {
+    public String doLogin(@ModelAttribute("loginForm") LoginForm form, RedirectAttributes ra) {
         var user = auth.login(form.email(), form.password());
         if (user == null) {
             ra.addFlashAttribute("error", "Credenciales inválidas.");
@@ -44,14 +41,10 @@ public class AuthController {
             return "redirect:/login";
         }
 
-        // Guardar usuario actual en sesión
         current.set(user);
-
-        // Redirigir al dashboard o vista principal
         return "redirect:/dashboard";
     }
 
-    // Logout
     @PostMapping("/logout")
     public String logout(RedirectAttributes ra) {
         current.clear();

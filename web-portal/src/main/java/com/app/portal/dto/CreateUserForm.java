@@ -1,4 +1,4 @@
-package com.app.portal.web;
+package com.app.portal.dto;
 
 public class CreateUserForm {
     private String email;

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Mis visitas de hoy</title>
+</head>
+<body>
+    <h1>Visitas asignadas para hoy</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Sitio</th>
+                <th>Inicio</th>
+                <th>Fin</th>
+                <th>Propósito</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="visit : ${visits}">
+                <td th:text="${visit.id}"></td>
+                <td th:text="${visit.customerId}"></td>
+                <td th:text="${visit.siteId}"></td>
+                <td th:text="${visit.scheduledStartAt}"></td>
+                <td th:text="${visit.scheduledEndAt}"></td>
+                <td th:text="${visit.purpose}"></td>
+                <td th:text="${visit.state}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
