@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clientes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+  <div class="container mt-4">
+    <h1 class="mb-4">Clientes</h1>
+
+    <!-- ✅ Mensaje de éxito -->
+    <div th:if="${success}" class="alert alert-success" role="alert">
+      <p th:text="${success}"></p>
+    </div>
+
+    <!-- ✅ Formulario para crear cliente -->
+    <form th:action="@{/clientes}" th:object="${customerForm}" method="post" class="mb-4">
+      <div class="mb-3">
+        <label for="name" class="form-label">Nombre:</label>
+        <input type="text" id="name" th:field="*{name}" class="form-control" />
+        <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="text-danger"></div>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email:</label>
+        <input type="email" id="email" th:field="*{email}" class="form-control" />
+        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger"></div>
+      </div>
+      <button type="submit" class="btn btn-primary">Crear</button>
+    </form>
+
+    <h2 class="mb-3">Listado de Clientes</h2>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered align-middle">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="c : ${clientes}" th:if="${c != null}">
+            <td th:text="${c.id}">ID</td>
+            <td th:text="${c.name}">Nombre</td>
+            <td th:text="${c.email}">Email</td>
+            <td>
+              <!-- ✅ Confirmación al eliminar -->
+              <form th:action="@{/clientes/delete/{id}(id=${c.id})}" method="post" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

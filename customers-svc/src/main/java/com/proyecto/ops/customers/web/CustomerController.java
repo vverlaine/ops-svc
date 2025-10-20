@@ -19,8 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.proyecto.ops.customers.model.CustomerBasic;
 import com.proyecto.ops.customers.repo.CustomerJdbcRepository;
-import com.proyecto.ops.customers.security.AuthenticatedUser;
-import com.proyecto.ops.customers.security.CurrentUser;
 
 import jakarta.validation.Valid;
 
@@ -64,8 +62,7 @@ public class CustomerController {
     @GetMapping
     public ResponseEntity<?> list(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @CurrentUser AuthenticatedUser me
+            @RequestParam(defaultValue = "20") int size
     ) {
         List<CustomerBasic> data = repo.list(page, size);
         long total = repo.countAll();
@@ -76,8 +73,7 @@ public class CustomerController {
     public ResponseEntity<?> search(
             @RequestParam String q,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
-            @CurrentUser AuthenticatedUser me
+            @RequestParam(defaultValue = "20") int size
     ) {
         List<CustomerBasic> data = repo.search(q, page, size);
         long total = repo.countSearch(q);
@@ -86,8 +82,7 @@ public class CustomerController {
 
     @PostMapping
     public ResponseEntity<?> create(
-            @Valid @RequestBody CreateCustomerRequest req,
-            @CurrentUser AuthenticatedUser me
+            @Valid @RequestBody CreateCustomerRequest req
     ) {
         CustomerBasic saved = repo.create(
                 req.name(),
@@ -101,8 +96,7 @@ public class CustomerController {
     @PatchMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable UUID id,
-            @RequestBody CreateCustomerRequest req,
-            @CurrentUser AuthenticatedUser me
+            @RequestBody CreateCustomerRequest req
     ) {
         return repo.updatePartial(
                 id,
@@ -117,8 +111,7 @@ public class CustomerController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(
-            @PathVariable UUID id,
-            @CurrentUser AuthenticatedUser me
+            @PathVariable UUID id
     ) {
         boolean deleted = repo.delete(id);
         return deleted ? ResponseEntity.noContent().build()
@@ -126,8 +119,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerBasic> getById(@PathVariable UUID id,
-            @CurrentUser AuthenticatedUser me) {
+    public ResponseEntity<CustomerBasic> getById(@PathVariable UUID id) {
         return repo.findById(id)
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());

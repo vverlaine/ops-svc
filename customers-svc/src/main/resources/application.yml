@@ -16,7 +16,7 @@
 # ---------------------------------------------------------
 server:
   # Puerto en el que se expone el servicio (por defecto 8080 o variable PORT).
-  port: ${PORT:8080}
+  port: ${PORT:8091}
   # Permite reenviar encabezados HTTP, útil cuando se usa un proxy o balanceador.
   forward-headers-strategy: native
 
@@ -55,4 +55,4 @@ management:
 # Define la URL base para las validaciones de token y obtención de usuario.
 # Puede personalizarse con la variable AUTH_BASE_URL.
 auth:
-  base-url: ${AUTH_BASE_URL:http://localhost:8089}
+  base-url: ${AUTH_BASE_URL:http://localhost:8099}
