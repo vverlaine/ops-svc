@@ -1,0 +1,52 @@
+<!-- src/main/resources/templates/admin/user_form.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8"/>
+  <title>Nuevo usuario</title>
+  <style>
+    body{font-family: system-ui, Arial; max-width: 680px; margin: 24px auto;}
+    form{display:grid; gap:12px}
+    label{font-weight:600}
+    input,select{padding:10px;border:1px solid #d1d5db;border-radius:8px}
+    .row{display:grid; gap:8px}
+    .actions{display:flex; gap:12px; margin-top:12px}
+    button{padding:10px 14px;border-radius:8px;border:none;background:#111827;color:#fff;cursor:pointer}
+    a{color:#111827}
+  </style>
+</head>
+<body>
+
+<h2>Crear usuario</h2>
+
+<form th:action="@{/admin/users}" th:object="${userForm}" method="post">
+  <div class="row">
+    <label>Email</label>
+    <input type="email" th:field="*{email}" required/>
+  </div>
+
+  <div class="row">
+    <label>Nombre</label>
+    <input type="text" th:field="*{name}" required/>
+  </div>
+
+  <div class="row">
+    <label>Rol</label>
+    <select th:field="*{role}">
+      <option th:each="r : ${roles}" th:text="${r}" th:value="${r}"></option>
+    </select>
+  </div>
+
+  <div class="row">
+    <label>Contraseña temporal</label>
+    <input type="text" th:field="*{password}" placeholder="p. ej. 1234" required/>
+  </div>
+
+  <div class="actions">
+    <button type="submit">Crear usuario</button>
+    <a th:href="@{/admin}">Cancelar</a>
+  </div>
+</form>
+
+</body>
+</html>

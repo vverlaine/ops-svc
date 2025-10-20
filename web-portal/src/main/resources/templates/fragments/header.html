@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="topbar(user)">
+  <div style="padding:10px;background:#0f172a;color:white;display:flex;gap:16px;align-items:center;">
+    <a th:href="@{/dashboard}" style="color:white;text-decoration:none;">Dashboard</a>
+
+    <!-- Solo ADMIN ve administración -->
+    <a th:if="${user != null and #strings.equalsIgnoreCase(user.role, 'ADMIN')}"
+       th:href="@{/admin/users}" style="color:white;text-decoration:none;">Gestión de usuarios</a>
+
+    <div style="margin-left:auto;">
+      <span th:text="${user != null ? user.name + ' (' + user.role + ')' : 'Invitado'}"></span>
+      <form th:if="${user != null}" th:action="@{/logout}" method="post" style="display:inline;margin-left:10px;">
+        <button type="submit">Salir</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

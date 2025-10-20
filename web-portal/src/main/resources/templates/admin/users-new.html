@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Nuevo Usuario</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="container py-4">
+  <div th:replace="fragments :: navbar"></div>
+
+  <h1 class="mb-4">Crear Nuevo Usuario</h1>
+
+  <!-- Mostrar error si viene desde el controlador -->
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+  <form th:action="@{/admin/users}" th:object="${form}" method="post" class="row g-3">
+
+    <div class="col-md-6">
+      <label for="name" class="form-label">Nombre</label>
+      <input type="text" th:field="*{name}" class="form-control" id="name" required />
+    </div>
+
+    <div class="col-md-6">
+      <label for="email" class="form-label">Correo electrónico</label>
+      <input type="email" th:field="*{email}" class="form-control" id="email" required />
+    </div>
+
+    <div class="col-md-6">
+      <label for="password" class="form-label">Contraseña</label>
+      <input type="password" th:field="*{password}" class="form-control" id="password" required />
+    </div>
+
+    <div class="col-md-6">
+      <label for="role" class="form-label">Rol</label>
+      <select th:field="*{role}" class="form-select" id="role" required>
+        <option value="ADMIN">ADMIN</option>
+        <option value="SUPERVISOR">SUPERVISOR</option>
+        <option value="TECNICO">TECNICO</option>
+      </select>
+    </div>
+
+    <div class="col-12 d-flex gap-2">
+      <button type="submit" class="btn btn-success">Guardar Usuario</button>
+      <a th:href="@{/admin/users}" class="btn btn-secondary">Cancelar</a>
+    </div>
+  </form>
+
+</body>
+</html>

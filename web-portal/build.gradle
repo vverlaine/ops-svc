@@ -1,0 +1,35 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+}
+
+group = 'com.app.portal'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'          // MVC + RestTemplate
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'   // Vistas
+    implementation 'org.springframework.boot:spring-boot-starter-validation'  // @Valid, etc.
+
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('bootRun') {
+    // Dile a Gradle cuál es la clase principal:
+    systemProperty 'spring.output.ansi.enabled', 'ALWAYS'
+}
+
+springBoot {
+    mainClass = 'com.app.portal.WebPortalApplication'
+}

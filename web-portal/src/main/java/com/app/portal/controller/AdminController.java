@@ -1,31 +1,129 @@
 package com.app.portal.controller;
 
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.app.portal.service.AuthClient;
+import com.app.portal.session.CurrentUser;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
+/**
+ * Controlador de administración de usuarios
+ */
 @Controller
-@RequestMapping("/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@RequestMapping("/admin/users")
 public class AdminController {
 
-    @GetMapping
-    public String adminHome() {
-        // Página principal de admin: /templates/admin/index.html
-        return "admin/index";
+    private final AuthClient auth;
+    private final CurrentUser current;
+
+    // Esta clase es tu "form" del HTML con getters/setters (usa la que ya tienes si está en otro paquete)
+    public static class CreateUserForm {
+
+        private String email;
+        private String name;
+        private String role;
+        private String password;
+
+        public String getEmail() {
+            return email;
+        }
+
+        public void setEmail(String email) {
+            this.email = email;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getRole() {
+            return role;
+        }
+
+        public void setRole(String role) {
+            this.role = role;
+        }
+
+        public String getPassword() {
+            return password;
+        }
+
+        public void setPassword(String password) {
+            this.password = password;
+        }
     }
 
-    @GetMapping("/users")
-    public String users() {
-        // Esta es la vista que fallaba: /templates/admin/users.html
+    public AdminController(AuthClient auth, CurrentUser current) {
+        this.auth = auth;
+        this.current = current;
+    }
+
+    // LISTA
+    @GetMapping
+    public String users(Model model) {
+        // <- AHORA sin StringBuilder: AuthClient.listUsers() no recibe argumentos
+        var users = auth.listUsers();
+        model.addAttribute("users", users);
         return "admin/users";
     }
 
-    @GetMapping("/config")
-    public String config() {
-        // Si tienes /templates/fragments/config.html y quieres usarlo como página,
-        // crea también /templates/admin/config.html o cambia este return.
-        return "admin/config"; // crea templates/admin/config.html si aún no existe
+    // FORM NUEVO
+    @GetMapping("/new")
+    public String newUser(Model model) {
+        if (!model.containsAttribute("form")) {
+            var f = new CreateUserForm();
+            f.setRole("USER");
+            model.addAttribute("form", f);
+        }
+        return "admin/users-new";
+    }
+
+    // CREAR
+    @PostMapping
+    public String create(@ModelAttribute("form") @Valid CreateUserForm form, Model model) {
+        var err = new StringBuilder();
+
+        // <- Cambiado: AuthClient.createUser(CreateUserForm, StringBuilder)
+        var req = new AuthClient.CreateUserForm(
+                form.getEmail(),
+                form.getName(),
+                form.getRole(),
+                form.getPassword()
+        );
+
+        boolean ok = auth.createUser(req, err);
+
+        if (!ok) {
+            model.addAttribute("error", err.toString());
+            model.addAttribute("form", form);
+            return "admin/users-new";
+        }
+
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/{userId}/delete")
+    public String delete(@PathVariable String userId, Model model) {
+        var err = new StringBuilder();
+        boolean ok = auth.deleteUser(userId, err);
+        if (!ok) {
+            model.addAttribute("error", err.toString());
+        }
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/{userId}/role")
+    public String changeRole(@PathVariable String userId, @RequestParam String role, Model model) {
+        var err = new StringBuilder();
+        boolean ok = auth.changeUserRole(userId, role, err);
+        if (!ok) {
+            model.addAttribute("error", err.toString());
+        }
+        return "redirect:/admin/users";
     }
 }
