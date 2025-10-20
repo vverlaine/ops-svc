@@ -1,0 +1,31 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: web-portal
+  thymeleaf:
+    cache: false
+  h2:
+    console:
+      enabled: true
+      path: /h2
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        default_schema: app
+        jdbc.time_zone: UTC
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+ops:
+  url: http://localhost:8081
+
+maps:
+  apiKey: YOUR_API_KEY

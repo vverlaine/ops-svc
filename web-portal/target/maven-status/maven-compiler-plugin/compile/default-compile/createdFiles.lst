@@ -1,0 +1,6 @@
+com/app/portal/config/WebClientConfig.class
+com/app/portal/WebPortalApplication.class
+com/app/portal/web/LoginController.class
+com/app/portal/service/StatusService.class
+com/app/portal/security/SecurityConfig.class
+com/app/portal/web/DashboardController.class

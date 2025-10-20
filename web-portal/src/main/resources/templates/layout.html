@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <title th:replace="${pageTitle} :: text">Portal</title>
+  <link rel="stylesheet" th:href="@{/css/main.css}" />
+</head>
+
+<body>
+
+  <header>
+    <h1>Portal</h1>
+  </header>
+
+  <main th:fragment="content">
+    <div>Contenido</div>
+  </main>
+
+  <footer>
+    <small>&copy; 2025</small>
+  </footer>
+
+</body>
+
+</html>

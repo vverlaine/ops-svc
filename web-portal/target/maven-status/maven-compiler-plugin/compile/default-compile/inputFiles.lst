@@ -1,0 +1,6 @@
+/Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/WebPortalApplication.java
+/Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/config/WebClientConfig.java
+/Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/security/SecurityConfig.java
+/Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/service/StatusService.java
+/Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/web/DashboardController.java
+/Users/verlaine/Documents/Github Personal/ops-svc/web-portal/src/main/java/com/app/portal/web/LoginController.java
