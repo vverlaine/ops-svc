@@ -60,6 +60,7 @@ public class VisitasController {
             return "error/403";
         }
 
+        // 🔹 Llamada al microservicio visits-svc
         ResponseEntity<PageDto<VisitDto>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -68,7 +69,30 @@ public class VisitasController {
         }
         );
 
+        // 🔹 Obtener la lista de visitas (vacía si no hay resultados)
         List<VisitDto> visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
+
+        // 🔹 AQUÍ se enriquece cada visita con datos adicionales
+        for (VisitDto visita : visitas) {
+            try {
+                // Buscar el cliente por ID en el microservicio de clientes
+                Map<String, Object> cliente = customerClient.getCustomerById(UUID.fromString(visita.getCustomerId()));
+                if (cliente != null && cliente.containsKey("name")) {
+                    visita.setCustomerName((String) cliente.get("name"));
+                } else {
+                    visita.setCustomerName("Desconocido");
+                }
+
+                // Por ahora el técnico queda fijo (luego conectaremos auth-svc)
+                visita.setTechnicianName("Sin técnico");
+
+            } catch (Exception e) {
+                visita.setCustomerName("Error cargando cliente");
+                visita.setTechnicianName("Error técnico");
+            }
+        }
+
+        // 🔹 Agregar al modelo para mostrar en Thymeleaf
         model.addAttribute("visitas", visitas);
         model.addAttribute("rol", user.getRole());
         return "visitas";
@@ -83,13 +107,6 @@ public class VisitasController {
 
     @PostMapping("/visits/crear")
     public String procesarFormularioCreacion(@ModelAttribute("visita") CrearVisitaForm form) {
-
-        System.out.println("Customer ID: " + form.getCustomerId());
-        System.out.println("Site ID: " + form.getSiteId());
-        System.out.println("Technician ID: " + form.getTechnicianId());
-        System.out.println("Priority: " + form.getPriority());
-        System.out.println("Purpose: " + form.getPurpose());
-        System.out.println("Notes: " + form.getNotesPlanned());
 
         OffsetDateTime start = form.getScheduledStartAt().atOffset(ZoneOffset.of("-06:00"));
         OffsetDateTime end = form.getScheduledEndAt().atOffset(ZoneOffset.of("-06:00"));
@@ -109,6 +126,50 @@ public class VisitasController {
 
         String url = visitsSvcUrl + "/visits";
         restTemplate.postForObject(url, body, Void.class);
+        return "redirect:/visitas";
+    }
+
+    @GetMapping("/visitas/{id}")
+    public String verVisita(@PathVariable String id, Model model) {
+        // Obtener la visita desde visits-svc
+        String url = visitsSvcUrl + "/visits/" + id;
+        VisitDto visita = restTemplate.getForObject(url, VisitDto.class);
+
+        // Obtener nombre del cliente (si aplica)
+        try {
+            Map<String, Object> cliente = customerClient.getCustomerById(UUID.fromString(visita.getCustomerId()));
+            visita.setCustomerName((String) cliente.getOrDefault("name", "Desconocido"));
+        } catch (Exception e) {
+            visita.setCustomerName("Error cargando cliente");
+        }
+
+        // Por ahora, técnico fijo
+        visita.setTechnicianName("Sin técnico");
+
+        model.addAttribute("visita", visita);
+        return "visits/ver"; // <-- este es el HTML que debes crear
+    }
+
+    @PostMapping("/visits/{id}/update")
+    public String actualizarVisita(
+            @PathVariable String id,
+            @RequestParam String estado,
+            @RequestParam String proposito,
+            @RequestParam String notas
+    ) {
+        // 🔹 Construir el cuerpo de la petición al microservicio visits-svc
+        Map<String, Object> body = new HashMap<>();
+        body.put("state", estado);
+        body.put("purpose", proposito);
+        body.put("notesPlanned", notas);
+
+        // 🔹 Construir la URL del microservicio
+        String url = visitsSvcUrl + "/visits/" + id;
+
+        // 🔹 Usar RestTemplate para enviar la actualización (PATCH)
+        restTemplate.patchForObject(url, body, Void.class);
+
+        // 🔹 Redirigir de nuevo al detalle de la visita
         return "redirect:/visitas";
     }
 }

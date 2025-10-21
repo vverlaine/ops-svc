@@ -54,8 +54,8 @@ import java.util.UUID;
 /**
  * Implementación del servicio principal de gestión de visitas.
  *
- * Controla las operaciones del ciclo de vida de las visitas y delega la persistencia
- * a los repositorios JPA correspondientes.
+ * Controla las operaciones del ciclo de vida de las visitas y delega la
+ * persistencia a los repositorios JPA correspondientes.
  */
 @Service
 @Transactional
@@ -72,12 +72,13 @@ public class VisitServiceImpl implements VisitService {
      * @param visitRepository Repositorio para operaciones CRUD sobre visitas.
      * @param eventRepository Repositorio para registrar eventos de visitas.
      * @param noteRepository Repositorio para notas asociadas a las visitas.
-     * @param visitEmailService Servicio encargado de manejar notificaciones por correo.
+     * @param visitEmailService Servicio encargado de manejar notificaciones por
+     * correo.
      */
     public VisitServiceImpl(VisitRepository visitRepository,
-                            VisitEventRepository eventRepository,
-                            VisitNoteRepository noteRepository,
-                            VisitEmailService visitEmailService) {
+            VisitEventRepository eventRepository,
+            VisitNoteRepository noteRepository,
+            VisitEmailService visitEmailService) {
         this.visitRepository = visitRepository;
         this.eventRepository = eventRepository;
         this.noteRepository = noteRepository;
@@ -99,8 +100,8 @@ public class VisitServiceImpl implements VisitService {
      */
     @Override
     public Visit createPlanned(UUID customerId, UUID siteId, UUID technicianId,
-                               OffsetDateTime start, OffsetDateTime end,
-                               VisitPriority priority, String purpose, String notesPlanned) {
+            OffsetDateTime start, OffsetDateTime end,
+            VisitPriority priority, String purpose, String notesPlanned) {
 
         Visit v = Visit.planned(customerId, siteId, technicianId, start, end, priority, purpose, notesPlanned);
         v.validateDates();
@@ -112,8 +113,8 @@ public class VisitServiceImpl implements VisitService {
     }
 
     /**
-     * Actualiza los datos de una visita en estado PLANNED.
-     * Solo puede modificarse mientras no haya iniciado.
+     * Actualiza los datos de una visita en estado PLANNED. Solo puede
+     * modificarse mientras no haya iniciado.
      *
      * @param visitId Identificador de la visita.
      * @param start Nueva fecha/hora de inicio planificada.
@@ -126,7 +127,7 @@ public class VisitServiceImpl implements VisitService {
      */
     @Override
     public Visit updatePlanned(UUID visitId, OffsetDateTime start, OffsetDateTime end,
-                               UUID technicianId, VisitPriority priority, String purpose, String notesPlanned) {
+            UUID technicianId, VisitPriority priority, String purpose, String notesPlanned) {
         Visit v = visitRepository.findById(visitId)
                 .orElseThrow(() -> new IllegalArgumentException("Visit not found"));
 
@@ -134,12 +135,24 @@ public class VisitServiceImpl implements VisitService {
         if (v.getState() != VisitState.PLANNED) {
             throw new IllegalStateException("Solo se puede editar una visita en estado PLANNED");
         }
-        if (start != null) v.setScheduledStartAt(start);
-        if (end != null) v.setScheduledEndAt(end);
-        if (technicianId != null) v.setTechnicianId(technicianId);
-        if (priority != null) v.setPriority(priority);
-        if (purpose != null) v.setPurpose(purpose);
-        if (notesPlanned != null) v.setNotesPlanned(notesPlanned);
+        if (start != null) {
+            v.setScheduledStartAt(start);
+        }
+        if (end != null) {
+            v.setScheduledEndAt(end);
+        }
+        if (technicianId != null) {
+            v.setTechnicianId(technicianId);
+        }
+        if (priority != null) {
+            v.setPriority(priority);
+        }
+        if (purpose != null) {
+            v.setPurpose(purpose);
+        }
+        if (notesPlanned != null) {
+            v.setNotesPlanned(notesPlanned);
+        }
 
         v.validateDates();
         Visit saved = visitRepository.save(v);
@@ -150,7 +163,8 @@ public class VisitServiceImpl implements VisitService {
     }
 
     /**
-     * Marca el inicio real de una visita (check-in) y registra el evento correspondiente.
+     * Marca el inicio real de una visita (check-in) y registra el evento
+     * correspondiente.
      *
      * @param visitId Identificador de la visita.
      * @param actorId Identificador del técnico que inicia la visita.
@@ -173,8 +187,8 @@ public class VisitServiceImpl implements VisitService {
     }
 
     /**
-     * Marca la finalización de una visita (check-out), registra el evento
-     * y dispara la notificación por correo electrónico.
+     * Marca la finalización de una visita (check-out), registra el evento y
+     * dispara la notificación por correo electrónico.
      *
      * @param visitId Identificador de la visita.
      * @param actorId Identificador del técnico.
@@ -222,7 +236,8 @@ public class VisitServiceImpl implements VisitService {
     }
 
     /**
-     * Lista las visitas aplicando filtros opcionales: técnico, estado o rango de fechas.
+     * Lista las visitas aplicando filtros opcionales: técnico, estado o rango
+     * de fechas.
      *
      * @param customerId Identificador del cliente (opcional).
      * @param technicianId Identificador del técnico (opcional).
@@ -235,7 +250,7 @@ public class VisitServiceImpl implements VisitService {
     @Override
     @Transactional(readOnly = true)
     public Page<Visit> list(UUID customerId, UUID technicianId, VisitState state,
-                            OffsetDateTime from, OffsetDateTime to, Pageable pageable) {
+            OffsetDateTime from, OffsetDateTime to, Pageable pageable) {
         // Implementación simple: si viene technicianId + rango, usar el finder preparado
         if (technicianId != null && from != null && to != null) {
             return visitRepository.findByTechnicianIdAndScheduledStartAtBetween(technicianId, from, to, pageable);
@@ -248,7 +263,8 @@ public class VisitServiceImpl implements VisitService {
     }
 
     /**
-     * Obtiene la lista de visitas programadas para un técnico en la fecha actual.
+     * Obtiene la lista de visitas programadas para un técnico en la fecha
+     * actual.
      *
      * @param technicianId Identificador del técnico.
      * @param today Fecha actual.
@@ -267,7 +283,8 @@ public class VisitServiceImpl implements VisitService {
     }
 
     /**
-     * Obtiene la lista completa de eventos asociados a una visita, ordenados cronológicamente.
+     * Obtiene la lista completa de eventos asociados a una visita, ordenados
+     * cronológicamente.
      *
      * @param visitId Identificador de la visita.
      * @return Lista de eventos registrados.
@@ -300,5 +317,11 @@ public class VisitServiceImpl implements VisitService {
 
         // Retorna todas las notas de la visita ordenadas por fecha de creación.
         return noteRepository.findByVisitIdOrderByCreatedAtAsc(visitId);
+    }
+
+    @Override
+    public Visit getById(UUID visitId) {
+        return visitRepository.findById(visitId)
+                .orElseThrow(() -> new RuntimeException("Visita no encontrada: " + visitId));
     }
 }

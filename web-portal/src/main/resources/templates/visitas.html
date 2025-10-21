@@ -20,27 +20,34 @@
             <a class="btn btn-primary mb-3" th:href="@{/visits/crear}">Crear nueva visita</a>
         </div>
 
+        <form method="get" th:action="@{/visitas}">
+            <button type="submit" name="estado" value="" class="btn btn-outline-secondary">Todos</button>
+            <button type="submit" name="estado" value="PLANNED" class="btn btn-outline-primary">Planned</button>
+            <button type="submit" name="estado" value="STARTED" class="btn btn-outline-warning">Started</button>
+            <button type="submit" name="estado" value="DONE" class="btn btn-outline-success">Done</button>
+        </form>
+
         <!-- Tabla de visitas -->
         <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Cliente</th>
                     <th>Técnico</th>
-                    <th>Fecha Programada</th>
+                    <th>Fecha Creada</th>
                     <th>Estado</th>
                     <th>Acciones</th>
+                    <th>Propósito</th>
                 </tr>
             </thead>
             <tbody>
                 <tr th:each="visita : ${visitas}">
                     <td th:text="${visita.customerName}">Cliente</td>
-                    <td th:text="${visita.siteName}">Sitio</td>
                     <td th:text="${visita.technicianName}">Técnico</td>
-                    <td th:text="${#temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy HH:mm')}">Inicio</td>
-                    <td th:text="${#temporals.format(visita.scheduledEndAt, 'dd/MM/yyyy HH:mm')}">Fin</td>
+                    <td th:text="${#temporals.format(visita.createdAt, 'yyyy-MM-dd')}"></td>
                     <td th:text="${visita.state}">Estado</td>
+                    <td th:text="${visita.purpose}">Propósito</td>
                     <td>
-                        <a th:href="@{'/visitas/' + ${visita.id}}" class="btn btn-sm btn-info">Ver</a>
+                        <a th:href="@{'/visitas/' + ${visita.id}}" class="btn btn-info btn-sm">Ver</a>
 
                         <button th:if="${rol == 'TECNICO' and visita.state == 'SCHEDULED'}"
                             th:onclick="'location.href=\'/visitas/' + ${visita.id} + '/checkin\''"

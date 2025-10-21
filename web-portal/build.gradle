@@ -19,7 +19,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'          // MVC + RestTemplate
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'   // Vistas
     implementation 'org.springframework.boot:spring-boot-starter-validation'  // @Valid, etc.
-
+    implementation 'org.apache.httpcomponents.client5:httpclient5:5.3.1'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -28,6 +28,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.30'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
     compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+    developmentOnly("org.springframework.boot:spring-boot-devtools")
 }
 
 tasks.named('bootRun') {

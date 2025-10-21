@@ -41,4 +41,14 @@ public class CustomerClient {
         restTemplate.delete(url);
         return true;
     }
+
+    public Map<String, Object> getCustomerById(UUID id) {
+        try {
+            String url = customersSvcUrl + "/customers/" + id;
+            return restTemplate.getForObject(url, Map.class);
+        } catch (Exception e) {
+            log.error("Error al obtener cliente por ID", e);
+            return null;
+        }
+    }
 }

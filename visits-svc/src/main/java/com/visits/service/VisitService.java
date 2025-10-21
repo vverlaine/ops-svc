@@ -153,4 +153,6 @@ public interface VisitService {
      * @return Lista actualizada de notas de la visita.
      */
     List<VisitNote> addNote(UUID visitId, UUID authorId, NoteVisibility visibility, String body);
+
+    Visit getById(UUID visitId);
 }

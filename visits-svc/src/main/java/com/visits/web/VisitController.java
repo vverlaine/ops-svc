@@ -49,9 +49,11 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/visits")
 /**
- * Controlador REST que gestiona las operaciones relacionadas con visitas técnicas.
+ * Controlador REST que gestiona las operaciones relacionadas con visitas
+ * técnicas.
  *
- * Proporciona endpoints para crear, actualizar, iniciar, finalizar y documentar visitas.
+ * Proporciona endpoints para crear, actualizar, iniciar, finalizar y documentar
+ * visitas.
  */
 public class VisitController {
 
@@ -60,7 +62,8 @@ public class VisitController {
     /**
      * Constructor con inyección del servicio principal de visitas.
      *
-     * @param service Servicio de negocio que gestiona las operaciones de visitas.
+     * @param service Servicio de negocio que gestiona las operaciones de
+     * visitas.
      */
     public VisitController(VisitService service) {
         this.service = service;
@@ -68,7 +71,8 @@ public class VisitController {
 
     // Crear visita planificada
     /**
-     * Crea una nueva visita planificada a partir de los datos proporcionados en la solicitud.
+     * Crea una nueva visita planificada a partir de los datos proporcionados en
+     * la solicitud.
      *
      * @param req Objeto con los datos necesarios para planificar la visita.
      * @return La visita creada.
@@ -102,10 +106,12 @@ public class VisitController {
 
     // Check-in
     /**
-     * Marca el inicio real de una visita (check-in) y actualiza su estado a STARTED.
+     * Marca el inicio real de una visita (check-in) y actualiza su estado a
+     * STARTED.
      *
      * @param id Identificador de la visita.
-     * @param req Objeto con los datos de ubicación, técnico y momento del check-in.
+     * @param req Objeto con los datos de ubicación, técnico y momento del
+     * check-in.
      * @return La visita actualizada.
      */
     @PostMapping("/{id}/check-in")
@@ -116,7 +122,8 @@ public class VisitController {
 
     // Check-out
     /**
-     * Marca la finalización real de una visita (check-out) con resumen del trabajo.
+     * Marca la finalización real de una visita (check-out) con resumen del
+     * trabajo.
      *
      * @param id Identificador de la visita.
      * @param req Objeto con los datos de ubicación, técnico, hora y resumen.
@@ -143,7 +150,8 @@ public class VisitController {
 
     // Listar con filtros simples
     /**
-     * Lista las visitas filtradas opcionalmente por cliente, técnico, estado o fechas.
+     * Lista las visitas filtradas opcionalmente por cliente, técnico, estado o
+     * fechas.
      *
      * @param customerId Identificador del cliente (opcional).
      * @param technicianId Identificador del técnico (opcional).
@@ -156,12 +164,12 @@ public class VisitController {
      */
     @GetMapping
     public Page<Visit> list(@RequestParam(required = false) UUID customerId,
-                            @RequestParam(required = false) UUID technicianId,
-                            @RequestParam(required = false) VisitState state,
-                            @RequestParam(required = false) OffsetDateTime from,
-                            @RequestParam(required = false) OffsetDateTime to,
-                            @RequestParam(defaultValue = "0") int page,
-                            @RequestParam(defaultValue = "50") int size) {
+            @RequestParam(required = false) UUID technicianId,
+            @RequestParam(required = false) VisitState state,
+            @RequestParam(required = false) OffsetDateTime from,
+            @RequestParam(required = false) OffsetDateTime to,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size) {
         // Solicita al servicio las visitas filtradas y paginadas según los parámetros.
         return service.list(customerId, technicianId, state, from, to, PageRequest.of(page, size));
     }
@@ -176,7 +184,7 @@ public class VisitController {
      */
     @GetMapping("/me/today")
     public List<Visit> myToday(@RequestParam UUID technicianId,
-                               @RequestParam(required = false) String dateIso) {
+            @RequestParam(required = false) String dateIso) {
         // Si no se envía fecha, usa la fecha actual del sistema.
         LocalDate day = (dateIso == null || dateIso.isBlank()) ? LocalDate.now() : LocalDate.parse(dateIso);
         return service.myVisitsToday(technicianId, day);
@@ -197,7 +205,8 @@ public class VisitController {
 
     // Agregar nota
     /**
-     * Agrega una nota a una visita existente y devuelve todas las notas actualizadas.
+     * Agrega una nota a una visita existente y devuelve todas las notas
+     * actualizadas.
      *
      * @param id Identificador de la visita.
      * @param req Objeto con los datos de la nota (autor, visibilidad, cuerpo).
@@ -209,12 +218,18 @@ public class VisitController {
         return service.addNote(id, req.authorId, req.visibility, req.body);
     }
 
+    @GetMapping("/{id}")
+    public Visit getById(@PathVariable UUID id) {
+        return service.getById(id);
+    }
+
     // =========================================================================
     // Clases internas DTO utilizadas para recibir los cuerpos de solicitud (request)
     // desde los clientes en formato JSON. Estas clases simplifican la comunicación
     // entre el frontend y el backend, evitando exponer las entidades del dominio.
     // =========================================================================
     public static class CreateVisitRequest {
+
         public UUID customerId;
         public UUID siteId;
         public UUID technicianId;
@@ -226,6 +241,7 @@ public class VisitController {
     }
 
     public static class UpdateVisitRequest {
+
         public OffsetDateTime scheduledStartAt;
         public OffsetDateTime scheduledEndAt;
         public UUID technicianId;
@@ -235,6 +251,7 @@ public class VisitController {
     }
 
     public static class CheckRequest {
+
         public UUID actorId;
         public OffsetDateTime when;
         public Double lat;
@@ -242,10 +259,12 @@ public class VisitController {
     }
 
     public static class CheckOutRequest extends CheckRequest {
+
         public String workSummary;
     }
 
     public static class AddNoteRequest {
+
         public UUID authorId;
         public NoteVisibility visibility;
         public String body;
