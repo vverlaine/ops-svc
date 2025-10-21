@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout (~{::body})}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Crear Visita</title>
+</head>
+
+<body>
+    <div th:replace="~{fragments :: navbar}"></div>
+    <h2>Crear Visita</h2>
+
+    <form th:action="@{/visits/crear}" th:object="${visita}" method="post" class="form">
+        <div class="form-group">
+            <label>Cliente ID</label>
+            <input type="text" th:field="*{customerId}" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Sitio ID</label>
+            <input type="text" th:field="*{siteId}" class="form-control" />
+        </div>
+
+        <div class="form-group">
+            <label>Técnico ID</label>
+            <input type="text" th:field="*{technicianId}" class="form-control" />
+        </div>
+
+        <input type="datetime-local" th:field="*{scheduledStartAt}" class="form-control"
+            th:value="${#temporals.format(visita.scheduledStartAt, 'yyyy-MM-dd''T''HH:mm')}" />
+
+        <input type="datetime-local" th:field="*{scheduledEndAt}" class="form-control"
+            th:value="${#temporals.format(visita.scheduledEndAt, 'yyyy-MM-dd''T''HH:mm')}" />
+
+        <div class="form-group mt-3">
+            <button type="submit" class="btn btn-primary">Crear Visita</button>
+        </div>
+    </form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

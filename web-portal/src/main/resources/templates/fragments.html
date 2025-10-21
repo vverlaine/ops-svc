@@ -25,6 +25,9 @@
           <li class="nav-item" th:if="${user != null and user.role == 'ADMIN'}">
             <a class="nav-link" th:href="@{/clientes}">Clientes</a>
           </li>
+          <li class="nav-item" th:if="${user != null and (user.role == 'TECNICO' or user.role == 'ADMIN')}">
+            <a class="nav-link" th:href="@{/visitas}">Visitas</a>
+          </li>
         </ul>
 
         <ul class="navbar-nav">

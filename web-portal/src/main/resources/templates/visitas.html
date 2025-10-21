@@ -1,0 +1,60 @@
+<!-- templates/visitas.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Visitas</title>
+</head>
+
+<body>
+    <div th:replace="~{fragments :: navbar}"></div>
+
+    <div class="container mt-4">
+        <h2 class="mb-4">Gestión de Visitas</h2>
+
+        <!-- Sección para supervisor -->
+        <div th:if="${rol == 'SUPERVISOR' or rol == 'ADMIN'}">
+            <a class="btn btn-primary mb-3" th:href="@{/visits/crear}">Crear nueva visita</a>
+        </div>
+
+        <!-- Tabla de visitas -->
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Cliente</th>
+                    <th>Técnico</th>
+                    <th>Fecha Programada</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="visita : ${visitas}">
+                    <td th:text="${visita.customerName}">Cliente</td>
+                    <td th:text="${visita.siteName}">Sitio</td>
+                    <td th:text="${visita.technicianName}">Técnico</td>
+                    <td th:text="${#temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy HH:mm')}">Inicio</td>
+                    <td th:text="${#temporals.format(visita.scheduledEndAt, 'dd/MM/yyyy HH:mm')}">Fin</td>
+                    <td th:text="${visita.state}">Estado</td>
+                    <td>
+                        <a th:href="@{'/visitas/' + ${visita.id}}" class="btn btn-sm btn-info">Ver</a>
+
+                        <button th:if="${rol == 'TECNICO' and visita.state == 'SCHEDULED'}"
+                            th:onclick="'location.href=\'/visitas/' + ${visita.id} + '/checkin\''"
+                            class="btn btn-sm btn-success">Check-in</button>
+
+                        <button th:if="${rol == 'TECNICO' and visita.state == 'STARTED'}"
+                            th:onclick="'location.href=\'/visitas/' + ${visita.id} + '/complete\''"
+                            class="btn btn-sm btn-warning">Completar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
