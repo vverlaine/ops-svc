@@ -8,6 +8,30 @@ public class CrearVisitaForm {
     private String technicianId;
     private LocalDateTime scheduledStartAt;
     private LocalDateTime scheduledEndAt;
+    private String priority;
+    private String purpose;
+    private String notesPlanned;
+
+    public String getNotesPlanned() {
+        return notesPlanned;
+    }
+
+    public void setNotesPlanned(String notesPlanned) {
+        this.notesPlanned = notesPlanned;
+    }
+
+    public String getPriority() {
+        return priority;
+    }
+    public void setPriority(String priority) {
+        this.priority = priority;
+    }
+    public String getPurpose() {
+        return purpose;
+    }
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
 
     public String getCustomerId() {
         return customerId;
