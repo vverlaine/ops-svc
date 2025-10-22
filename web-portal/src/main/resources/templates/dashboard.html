@@ -15,7 +15,7 @@
 
   <!-- Contenedor principal -->
   <div class="container mt-5">
-    <h1 class="mb-4">Bienvenido, <span th:text="${user.name}">Usuario</span></h1>
+    <h1 class="mb-4">Bienvenido, <span th:text="${user != null && user.name != null ? user.name : 'Usuario'}">Usuario</span>
 
     <!-- ADMIN -->
     <div th:if="${user.role == 'ADMIN'}">
