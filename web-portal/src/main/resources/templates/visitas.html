@@ -1,4 +1,3 @@
-<!-- templates/visitas.html -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
@@ -20,11 +19,31 @@
             <a class="btn btn-primary mb-3" th:href="@{/visits/crear}">Crear nueva visita</a>
         </div>
 
-        <form method="get" th:action="@{/visitas}">
-            <button type="submit" name="estado" value="" class="btn btn-outline-secondary">Todos</button>
-            <button type="submit" name="estado" value="PLANNED" class="btn btn-outline-primary">Planned</button>
-            <button type="submit" name="estado" value="STARTED" class="btn btn-outline-warning">Started</button>
-            <button type="submit" name="estado" value="DONE" class="btn btn-outline-success">Done</button>
+        <!-- Filtros por estado -->
+        <form method="get" th:action="@{/visitas}" class="mb-3">
+            <button type="submit"
+                    name="estado"
+                    value=""
+                    class="btn me-2"
+                    th:classappend="${#strings.isEmpty(param.estado)} ? 'btn-outline-secondary active' : 'btn-outline-secondary'">Todos</button>
+
+            <button type="submit"
+                    name="estado"
+                    value="PLANNED"
+                    class="btn me-2"
+                    th:classappend="${param.estado == 'PLANNED'} ? 'btn-outline-primary active' : 'btn-outline-primary'">Planned</button>
+
+            <button type="submit"
+                    name="estado"
+                    value="STARTED"
+                    class="btn me-2"
+                    th:classappend="${param.estado == 'STARTED'} ? 'btn-outline-warning active' : 'btn-outline-warning'">Started</button>
+
+            <button type="submit"
+                    name="estado"
+                    value="DONE"
+                    class="btn me-2"
+                    th:classappend="${param.estado == 'DONE'} ? 'btn-outline-success active' : 'btn-outline-success'">Done</button>
         </form>
 
         <!-- Tabla de visitas -->
@@ -50,17 +69,18 @@
                         <a th:href="@{'/visitas/' + ${visita.id}}" class="btn btn-info btn-sm">Ver</a>
 
                         <button th:if="${rol == 'TECNICO' and visita.state == 'SCHEDULED'}"
-                            th:onclick="'location.href=\'/visitas/' + ${visita.id} + '/checkin\''"
-                            class="btn btn-sm btn-success">Check-in</button>
+                                th:onclick="'location.href=\'/visitas/' + ${visita.id} + '/checkin\''"
+                                class="btn btn-sm btn-success">Check-in</button>
 
                         <button th:if="${rol == 'TECNICO' and visita.state == 'STARTED'}"
-                            th:onclick="'location.href=\'/visitas/' + ${visita.id} + '/complete\''"
-                            class="btn btn-sm btn-warning">Completar</button>
+                                th:onclick="'location.href=\'/visitas/' + ${visita.id} + '/complete\''"
+                                class="btn btn-sm btn-warning">Completar</button>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 

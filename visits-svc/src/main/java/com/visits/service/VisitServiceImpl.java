@@ -127,11 +127,10 @@ public class VisitServiceImpl implements VisitService {
      */
     @Override
     public Visit updatePlanned(UUID visitId, OffsetDateTime start, OffsetDateTime end,
-            UUID technicianId, VisitPriority priority, String purpose, String notesPlanned) {
+            UUID technicianId, VisitPriority priority, String purpose, String notesPlanned, VisitState state) {
         Visit v = visitRepository.findById(visitId)
                 .orElseThrow(() -> new IllegalArgumentException("Visit not found"));
 
-        // Se valida que la visita esté en estado PLANNED antes de permitir modificaciones.
         if (v.getState() != VisitState.PLANNED) {
             throw new IllegalStateException("Solo se puede editar una visita en estado PLANNED");
         }
@@ -153,11 +152,13 @@ public class VisitServiceImpl implements VisitService {
         if (notesPlanned != null) {
             v.setNotesPlanned(notesPlanned);
         }
+        if (state != null) {
+            v.setState(state); // ✅ ESTA LÍNEA FALTABA
+        }
 
         v.validateDates();
         Visit saved = visitRepository.save(v);
 
-        // Registra el evento de actualización de la visita.
         eventRepository.save(VisitEvent.of(saved.getId(), "VisitUpdated", null, null, null, null));
         return saved;
     }

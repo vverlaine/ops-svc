@@ -100,7 +100,7 @@ public class VisitController {
         // Delegación al servicio para actualizar una visita que aún no ha iniciado.
         return service.updatePlanned(
                 id, req.scheduledStartAt, req.scheduledEndAt,
-                req.technicianId, req.priority, req.purpose, req.notesPlanned
+                req.technicianId, req.priority, req.purpose, req.notesPlanned, req.state
         );
     }
 
@@ -248,6 +248,7 @@ public class VisitController {
         public VisitPriority priority;
         public String purpose;
         public String notesPlanned;
+        public VisitState state;
     }
 
     public static class CheckRequest {

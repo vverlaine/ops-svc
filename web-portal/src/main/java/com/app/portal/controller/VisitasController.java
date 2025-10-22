@@ -42,7 +42,10 @@ public class VisitasController {
     private String visitsSvcUrl;
 
     @GetMapping("/visitas")
-    public String listarVisitas(Model model) {
+    public String listarVisitas(
+            @RequestParam(required = false) String estado,
+            Model model
+    ) {
         UserDto user = current.get();
 
         if (user == null) {
@@ -55,12 +58,15 @@ public class VisitasController {
                     .queryParam("technicianId", user.getId())
                     .toUriString();
         } else if (Objects.equals(user.getRole(), "SUPERVISOR") || Objects.equals(user.getRole(), "ADMIN")) {
-            url = visitsSvcUrl + "/visits";
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits");
+            if (estado != null && !estado.isEmpty()) {
+                builder.queryParam("state", estado);
+            }
+            url = builder.toUriString();
         } else {
             return "error/403";
         }
 
-        // 🔹 Llamada al microservicio visits-svc
         ResponseEntity<PageDto<VisitDto>> response = restTemplate.exchange(
                 url,
                 HttpMethod.GET,
@@ -69,30 +75,19 @@ public class VisitasController {
         }
         );
 
-        // 🔹 Obtener la lista de visitas (vacía si no hay resultados)
         List<VisitDto> visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
 
-        // 🔹 AQUÍ se enriquece cada visita con datos adicionales
         for (VisitDto visita : visitas) {
             try {
-                // Buscar el cliente por ID en el microservicio de clientes
                 Map<String, Object> cliente = customerClient.getCustomerById(UUID.fromString(visita.getCustomerId()));
-                if (cliente != null && cliente.containsKey("name")) {
-                    visita.setCustomerName((String) cliente.get("name"));
-                } else {
-                    visita.setCustomerName("Desconocido");
-                }
-
-                // Por ahora el técnico queda fijo (luego conectaremos auth-svc)
+                visita.setCustomerName((String) cliente.getOrDefault("name", "Desconocido"));
                 visita.setTechnicianName("Sin técnico");
-
             } catch (Exception e) {
                 visita.setCustomerName("Error cargando cliente");
                 visita.setTechnicianName("Error técnico");
             }
         }
 
-        // 🔹 Agregar al modelo para mostrar en Thymeleaf
         model.addAttribute("visitas", visitas);
         model.addAttribute("rol", user.getRole());
         return "visitas";
@@ -157,19 +152,14 @@ public class VisitasController {
             @RequestParam String proposito,
             @RequestParam String notas
     ) {
-        // 🔹 Construir el cuerpo de la petición al microservicio visits-svc
         Map<String, Object> body = new HashMap<>();
         body.put("state", estado);
         body.put("purpose", proposito);
         body.put("notesPlanned", notas);
 
-        // 🔹 Construir la URL del microservicio
         String url = visitsSvcUrl + "/visits/" + id;
-
-        // 🔹 Usar RestTemplate para enviar la actualización (PATCH)
         restTemplate.patchForObject(url, body, Void.class);
 
-        // 🔹 Redirigir de nuevo al detalle de la visita
         return "redirect:/visitas";
     }
 }

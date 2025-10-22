@@ -77,7 +77,8 @@ public interface VisitService {
      * @return La visita actualizada.
      */
     Visit updatePlanned(UUID visitId, OffsetDateTime start, OffsetDateTime end,
-                        UUID technicianId, VisitPriority priority, String purpose, String notesPlanned);
+                    UUID technicianId, VisitPriority priority, String purpose, String notesPlanned,
+                    VisitState state);
 
     /**
      * Marca el inicio real de una visita (check-in).
