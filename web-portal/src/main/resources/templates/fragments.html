@@ -21,10 +21,6 @@
             <a class="nav-link" th:href="@{/visits}">Visitas</a>
           </li>
 
-          <li class="nav-item" th:if="${user != null and user.role == 'TECHNICIAN'}">
-            <a class="nav-link" th:href="@{/visits/today}">Mis Visitas Hoy</a>
-          </li>
-
           <li class="nav-item" th:if="${user != null and user.role == 'ADMIN'}">
             <a class="nav-link" th:href="@{/admin/users}">Usuarios</a>
           </li>

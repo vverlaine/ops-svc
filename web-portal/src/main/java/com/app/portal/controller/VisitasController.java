@@ -52,30 +52,41 @@ public class VisitasController {
             return "redirect:/login";
         }
 
+        List<VisitDto> visitas;
         String url;
+
         if (Objects.equals(user.getRole(), "TECNICO")) {
             url = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits/me/today")
                     .queryParam("technicianId", user.getId())
                     .toUriString();
+
+            ResponseEntity<List<VisitDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<List<VisitDto>>() {
+            }
+            );
+            visitas = response.getBody();
+
         } else if (Objects.equals(user.getRole(), "SUPERVISOR") || Objects.equals(user.getRole(), "ADMIN")) {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits");
             if (estado != null && !estado.isEmpty()) {
                 builder.queryParam("state", estado);
             }
             url = builder.toUriString();
+
+            ResponseEntity<PageDto<VisitDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<PageDto<VisitDto>>() {
+            }
+            );
+            visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
         } else {
             return "error/403";
         }
-
-        ResponseEntity<PageDto<VisitDto>> response = restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<PageDto<VisitDto>>() {
-        }
-        );
-
-        List<VisitDto> visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
 
         for (VisitDto visita : visitas) {
             try {
