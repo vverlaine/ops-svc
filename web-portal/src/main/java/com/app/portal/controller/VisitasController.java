@@ -24,6 +24,8 @@ import com.app.portal.client.TechnicianClient;
 import com.app.portal.client.SupervisorClient;
 import com.app.portal.service.AuthClient;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -266,9 +268,11 @@ public class VisitasController {
             visita.setCustomerName((String) cliente.getOrDefault("name", "Desconocido"));
             Object rawAddress = cliente.get("address");
             visita.setCustomerAddress(rawAddress != null ? rawAddress.toString() : null);
+            visita.setCustomerMapsUrl(buildGoogleMapsUrl(visita.getCustomerAddress()));
         } catch (Exception e) {
             visita.setCustomerName("Error cargando cliente");
             visita.setCustomerAddress(null);
+            visita.setCustomerMapsUrl(null);
         }
 
         if (visita.getTechnicianId() != null && !visita.getTechnicianId().isBlank()) {
@@ -301,6 +305,18 @@ public class VisitasController {
         model.addAttribute("visita", visita);
         model.addAttribute("esTecnico", esTecnico);
         return "visits/ver"; // <-- este es el HTML que debes crear
+    }
+
+    private String buildGoogleMapsUrl(String address) {
+        if (address == null) {
+            return null;
+        }
+        String trimmed = address.trim();
+        if (trimmed.isEmpty()) {
+            return null;
+        }
+        String encoded = URLEncoder.encode(trimmed, StandardCharsets.UTF_8);
+        return "https://www.google.com/maps/dir/?api=1&destination=" + encoded;
     }
 
     private List<Map<String, Object>> techniciansAvailableFor(UserDto user) {

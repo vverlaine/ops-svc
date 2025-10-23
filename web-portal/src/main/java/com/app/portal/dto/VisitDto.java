@@ -8,6 +8,7 @@ public class VisitDto {
     private String customerId;
     private String customerName;
     private String customerAddress;
+    private String customerMapsUrl;
 
     private String siteId;
     private String siteName;
@@ -58,6 +59,14 @@ public class VisitDto {
 
     public void setCustomerAddress(String customerAddress) {
         this.customerAddress = customerAddress;
+    }
+
+    public String getCustomerMapsUrl() {
+        return customerMapsUrl;
+    }
+
+    public void setCustomerMapsUrl(String customerMapsUrl) {
+        this.customerMapsUrl = customerMapsUrl;
     }
 
     public String getSiteId() {

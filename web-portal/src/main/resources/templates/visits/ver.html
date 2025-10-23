@@ -159,8 +159,16 @@
                     </li>
                     <li class="list-group-item">
                         <small class="text-muted text-uppercase">Dirección</small>
-                        <div th:text="${#strings.isEmpty(visita.customerAddress) ? 'Sin dirección registrada' : visita.customerAddress}">
-                            Sin dirección registrada
+                        <div class="d-flex flex-column gap-2">
+                            <div th:text="${#strings.isEmpty(visita.customerAddress) ? 'Sin dirección registrada' : visita.customerAddress}">
+                                Sin dirección registrada
+                            </div>
+                            <a class="btn btn-sm btn-outline-primary align-self-start"
+                               th:if="${visita.customerMapsUrl != null}"
+                               th:href="${visita.customerMapsUrl}"
+                               target="_blank" rel="noopener noreferrer">
+                                Ver en Google Maps
+                            </a>
                         </div>
                     </li>
                     <li class="list-group-item">
