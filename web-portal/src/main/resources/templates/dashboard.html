@@ -140,7 +140,7 @@
     </div>
 
     <div class="row g-4 grid-gap" th:if="${rol == 'SUPERVISOR'}">
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="card quick-card h-100 p-4">
           <div class="icon bg-primary text-white">
             <i class="bi bi-calendar-plus"></i>
@@ -152,66 +152,29 @@
           </a>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card quick-card h-100 p-4">
-          <div class="icon bg-warning text-dark">
-            <i class="bi bi-clipboard-check"></i>
-          </div>
-          <h5 class="fw-bold">Visitas programadas</h5>
-          <p class="text-muted flex-grow-1">Supervisa el estado de cada visita y realiza cambios rápidos.</p>
-          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
-            <i class="bi bi-eye me-1"></i> Revisar visitas
-          </a>
-        </div>
-      </div>
-      <div class="col-md-4">
+      <div class="col-md-6">
         <div class="card quick-card h-100 p-4">
           <div class="icon bg-success text-white">
             <i class="bi bi-people"></i>
           </div>
-          <h5 class="fw-bold">Agenda del equipo</h5>
-          <p class="text-muted flex-grow-1">Consulta las asignaciones de tus técnicos y balancea carga.</p>
-          <a th:href="@{/visitas/mis-tecnicos}" class="btn btn-outline-primary mt-2">
-            <i class="bi bi-journal-text me-1"></i> Ver agenda
-          </a>
+          <h5 class="fw-bold">Visitas programadas</h5>
+          <p class="text-muted flex-grow-1">Consulta y administra las visitas de tu equipo en un solo lugar.</p>
+          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-eye me-1"></i> Revisar visitas</a>
         </div>
       </div>
     </div>
 
     <div class="row g-4 grid-gap" th:if="${rol == 'TECNICO'}">
-      <div class="col-md-4">
+      <div class="col-md-6 col-lg-5">
         <div class="card quick-card h-100 p-4">
           <div class="icon bg-primary text-white">
-            <i class="bi bi-calendar-day"></i>
+            <i class="bi bi-calendar-check"></i>
           </div>
-          <h5 class="fw-bold">Visitas de hoy</h5>
-          <p class="text-muted flex-grow-1">Consulta tus visitas asignadas y revisa instrucciones previas.</p>
+          <h5 class="fw-bold">Visitas asignadas</h5>
+          <p class="text-muted flex-grow-1">Consulta tus visitas planificadas, registra check-in / check-out y revisa instrucciones.</p>
           <a th:href="@{/visitas}" class="btn btn-primary mt-2">
-            <i class="bi bi-arrow-right-circle me-1"></i> Abrir agenda
-          </a>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card quick-card h-100 p-4">
-          <div class="icon bg-success text-white">
-            <i class="bi bi-check2-square"></i>
-          </div>
-          <h5 class="fw-bold">Check-in / Check-out</h5>
-          <p class="text-muted flex-grow-1">Marca tus tiempos de llegada y salida para cada visita.</p>
-          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
-            <i class="bi bi-stopwatch me-1"></i> Registrar tiempos
-          </a>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card quick-card h-100 p-4">
-          <div class="icon bg-warning text-dark">
-            <i class="bi bi-geo-alt"></i>
-          </div>
-          <h5 class="fw-bold">Mapa y rutas</h5>
-          <p class="text-muted flex-grow-1">Accede a la ubicación de cada cliente y planifica tus traslados.</p>
-          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
-            <i class="bi bi-map me-1"></i> Ver mapa
+            <i class="bi bi-arrow-right-circle me-1"></i> Abrir mis visitas
           </a>
         </div>
       </div>
