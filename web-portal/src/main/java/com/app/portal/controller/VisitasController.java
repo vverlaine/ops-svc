@@ -18,13 +18,12 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.app.portal.forms.CrearVisitaForm;
-import com.app.portal.dto.CreateVisitCommand;
 import com.app.portal.client.CustomerClient;
+import com.app.portal.client.TechnicianClient;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.time.ZoneOffset;
@@ -37,6 +36,7 @@ public class VisitasController {
     private final RestTemplate restTemplate;
     private final CurrentUser current;
     private final CustomerClient customerClient;
+    private final TechnicianClient technicianClient;
 
     @Value("${visits.url}")
     private String visitsSvcUrl;
@@ -56,18 +56,24 @@ public class VisitasController {
         String url;
 
         if (Objects.equals(user.getRole(), "TECNICO")) {
-            url = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits/me/today")
+            OffsetDateTime from = OffsetDateTime.now(ZoneOffset.UTC).minusDays(7);
+            OffsetDateTime to = OffsetDateTime.now(ZoneOffset.UTC).plusDays(30);
+            url = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits")
                     .queryParam("technicianId", user.getId())
+                    .queryParam("from", from)
+                    .queryParam("to", to)
+                    .queryParam("page", 0)
+                    .queryParam("size", 100)
                     .toUriString();
 
-            ResponseEntity<List<VisitDto>> response = restTemplate.exchange(
+            ResponseEntity<PageDto<VisitDto>> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
                     null,
-                    new ParameterizedTypeReference<List<VisitDto>>() {
+                    new ParameterizedTypeReference<PageDto<VisitDto>>() {
             }
             );
-            visitas = response.getBody();
+            visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
 
         } else if (Objects.equals(user.getRole(), "SUPERVISOR") || Objects.equals(user.getRole(), "ADMIN")) {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits");
@@ -88,13 +94,36 @@ public class VisitasController {
             return "error/403";
         }
 
+        Map<String, String> technicianNames = new HashMap<>();
         for (VisitDto visita : visitas) {
             try {
                 Map<String, Object> cliente = customerClient.getCustomerById(UUID.fromString(visita.getCustomerId()));
                 visita.setCustomerName((String) cliente.getOrDefault("name", "Desconocido"));
-                visita.setTechnicianName("Sin técnico");
             } catch (Exception e) {
                 visita.setCustomerName("Error cargando cliente");
+            }
+
+            String technicianId = visita.getTechnicianId();
+            if (technicianId == null || technicianId.isBlank()) {
+                visita.setTechnicianName("Sin técnico");
+                continue;
+            }
+
+            String cachedName = technicianNames.get(technicianId);
+            if (cachedName != null) {
+                visita.setTechnicianName(cachedName);
+                continue;
+            }
+
+            try {
+                Map<String, Object> tecnico = technicianClient.getTechnicianById(UUID.fromString(technicianId));
+                String name = tecnico != null ? (String) tecnico.getOrDefault("userName", "Sin técnico") : "Sin técnico";
+                if (name == null || name.isBlank()) {
+                    name = "Sin técnico";
+                }
+                technicianNames.put(technicianId, name);
+                visita.setTechnicianName(name);
+            } catch (Exception ex) {
                 visita.setTechnicianName("Error técnico");
             }
         }
@@ -108,6 +137,7 @@ public class VisitasController {
     public String mostrarFormularioCreacion(Model model) {
         model.addAttribute("visita", new CrearVisitaForm());
         model.addAttribute("clientes", customerClient.listCustomers());
+        model.addAttribute("tecnicos", technicianClient.listTechnicians());
         return "visits/crear";
     }
 
@@ -149,10 +179,20 @@ public class VisitasController {
             visita.setCustomerName("Error cargando cliente");
         }
 
-        // Por ahora, técnico fijo
-        visita.setTechnicianName("Sin técnico");
+        if (visita.getTechnicianId() != null && !visita.getTechnicianId().isBlank()) {
+            try {
+                Map<String, Object> tecnico = technicianClient.getTechnicianById(UUID.fromString(visita.getTechnicianId()));
+                String name = tecnico != null ? (String) tecnico.getOrDefault("userName", "Sin técnico") : "Sin técnico";
+                visita.setTechnicianName((name == null || name.isBlank()) ? "Sin técnico" : name);
+            } catch (Exception ex) {
+                visita.setTechnicianName("Error técnico");
+            }
+        } else {
+            visita.setTechnicianName("Sin técnico");
+        }
 
         model.addAttribute("visita", visita);
+        model.addAttribute("esTecnico", current.isLoggedIn() && Objects.equals(current.getRole(), "TECNICO"));
         return "visits/ver"; // <-- este es el HTML que debes crear
     }
 

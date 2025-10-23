@@ -165,7 +165,7 @@ public class TechnicianController {
 
         List<String> skills = t.getSkills();
         return new TechnicianResponse(
-                t.getId(),
+                t.getUserId(),
                 t.getUserId(),
                 userName,
                 t.isActive(),

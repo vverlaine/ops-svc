@@ -25,7 +25,7 @@
                 <!-- Estado -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Estado:</strong></label>
-                    <select class="form-select" name="estado">
+                    <select class="form-select" name="estado" th:disabled="${esTecnico}">
                         <option value="PLANNED" th:selected="${visita.state == 'PLANNED'}">Planificada</option>
                         <option value="STARTED" th:selected="${visita.state == 'STARTED'}">En progreso</option>
                         <option value="DONE" th:selected="${visita.state == 'DONE'}">Finalizada</option>
@@ -38,12 +38,13 @@
                 <!-- Propósito (botones) -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Propósito:</strong></label>
-                    <div class="btn-group d-flex flex-wrap gap-2">
+                    <div class="btn-group d-flex flex-wrap gap-2" th:if="${!esTecnico}">
                         <button type="button" class="btn btn-outline-info" onclick="setPurpose('INSTALACION')">Instalación</button>
                         <button type="button" class="btn btn-outline-warning" onclick="setPurpose('MANTENIMIENTO')">Mantenimiento</button>
                         <button type="button" class="btn btn-outline-success" onclick="setPurpose('REVISION')">Revisión</button>
                         <button type="button" class="btn btn-outline-secondary" onclick="setPurpose('OTRO')">Otro</button>
                     </div>
+                    <div th:if="${esTecnico}" class="form-control-plaintext" th:text="${visita.purpose}">-</div>
                     <input type="hidden" name="proposito" id="proposito" th:value="${visita.purpose}">
                     <div class="mt-2 text-muted small">Seleccionado: <span id="purposeDisplay" th:text="${visita.purpose}">-</span></div>
                 </div>
@@ -51,13 +52,13 @@
                 <!-- Notas -->
                 <div class="mb-3">
                     <label class="form-label"><strong>Notas:</strong></label>
-                    <textarea class="form-control" name="notas" rows="3" th:text="${visita.notesPlanned}"></textarea>
+                    <textarea class="form-control" name="notas" rows="3" th:text="${visita.notesPlanned}" th:readonly="${esTecnico}"></textarea>
                 </div>
 
                 <!-- Botones -->
                 <div class="d-flex justify-content-between mt-4">
                     <a href="/visitas" class="btn btn-outline-secondary">← Regresar</a>
-                    <button type="submit" class="btn btn-success">💾 Guardar Cambios</button>
+                    <button type="submit" class="btn btn-success" th:disabled="${esTecnico}">💾 Guardar Cambios</button>
                 </div>
             </form>
         </div>

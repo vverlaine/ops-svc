@@ -70,7 +70,7 @@ public class AuthFilter extends OncePerRequestFilter {
     String path = request.getRequestURI();
 
         // Si la ruta solicitada pertenece a las rutas públicas, no requiere autenticación.
-    if (PUBLIC.contains(path)) { chain.doFilter(request, response); return; }
+    if (isPublic(path, request.getMethod())) { chain.doFilter(request, response); return; }
 
         // Obtiene el encabezado Authorization de la solicitud.
     String h = request.getHeader("Authorization");
@@ -119,5 +119,12 @@ public class AuthFilter extends OncePerRequestFilter {
     res.setContentType(MediaType.APPLICATION_JSON_VALUE);
         // Escribe un cuerpo JSON simple con el mensaje de error.
     res.getWriter().write("{\"error\":\"Unauthorized\"}");
+  }
+
+  private boolean isPublic(String path, String method) {
+    if (PUBLIC.contains(path)) {
+      return true;
+    }
+    return "GET".equalsIgnoreCase(method) && path.startsWith("/technicians");
   }
 }

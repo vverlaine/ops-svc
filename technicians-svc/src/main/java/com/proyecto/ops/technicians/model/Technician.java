@@ -38,7 +38,6 @@ import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -51,16 +50,13 @@ import jakarta.persistence.Table;
 @Table(schema = "app", name = "technicians")
 public class Technician {
 
-    // Identificador único del técnico (clave primaria).
-    @Id
-    @GeneratedValue
-    private UUID id;
-
     // Nombre del usuario asociado al técnico (informativo).
+    @Column(name = "user_name")
     private String userName;
 
     // Identificador del usuario en el servicio de autenticación (obligatorio y único).
     @Column(name = "user_id", nullable = false, unique = true)
+    @Id
     private UUID userId;
 
     // Indica si el técnico está activo o inactivo dentro del sistema.
@@ -81,14 +77,6 @@ public class Technician {
      * Métodos de acceso (getters y setters) para los campos del modelo Technician.
      */
     // Getters/Setters
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
     public UUID getUserId() {
         return userId;
     }
