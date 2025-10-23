@@ -9,8 +9,8 @@ import com.app.portal.client.SupervisorClient;
 import com.app.portal.service.AuthClient;
 import com.app.portal.service.AuthClient.CreateUserForm;
 import com.app.portal.dto.UserDto;
+import com.app.portal.session.CurrentUser;
 
-import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -21,15 +21,17 @@ public class AdminController {
 
     private final AuthClient auth;
     private final SupervisorClient supervisorClient;
+    private final CurrentUser current;
 
     @Autowired
-    public AdminController(AuthClient auth, SupervisorClient supervisorClient) {
+    public AdminController(AuthClient auth, SupervisorClient supervisorClient, CurrentUser current) {
         this.auth = auth;
         this.supervisorClient = supervisorClient;
+        this.current = current;
     }
 
     @GetMapping("/admin/users")
-    public String listarUsuarios(Model model, HttpSession session) {
+    public String listarUsuarios(Model model) {
         List<Map<String, Object>> rawUsers = auth.listUsers();
         var supervisorsOptions = supervisorClient.listSupervisors();
         Map<String, String> supervisorNameMap = supervisorsOptions.stream()
@@ -70,7 +72,6 @@ public class AdminController {
         model.addAttribute("usuarios", usuarios);
         model.addAttribute("supervisores", supervisorsOptions);
         model.addAttribute("supervisorMap", supervisorNameMap);
-        model.addAttribute("user", session.getAttribute("user"));
         return "/admin/users";
     }
 
@@ -84,7 +85,6 @@ public class AdminController {
     @PostMapping("/admin/crear")
     public String createUser(
             @ModelAttribute("form") CreateUserForm form,
-            HttpSession session,
             Model model
     ) {
         var err = new StringBuilder();
@@ -92,7 +92,6 @@ public class AdminController {
 
         if (!ok) {
             model.addAttribute("error", err.toString());
-            model.addAttribute("user", session.getAttribute("user"));
             model.addAttribute("supervisores", supervisorClient.listSupervisors());
             return "admin/users-new";
         }
