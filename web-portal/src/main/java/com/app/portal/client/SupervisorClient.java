@@ -58,14 +58,15 @@ public class SupervisorClient {
             List<SupervisorOption> result = new ArrayList<>();
             for (Object entry : list) {
                 if (entry instanceof Map<?, ?> map) {
+                    System.out.println("Supervisor entry: " + map);
                     Object idRaw = map.get("userId");
                     if (idRaw == null) continue;
                     String id = String.valueOf(idRaw);
                     if (id.isBlank()) continue;
-                    Object nameRaw = map.containsKey("name") ? map.get("name") : "Sin nombre";
+                    Object nameRaw = map.containsKey("name") ? map.get("name") : map.get("userName");
                     String name = nameRaw == null ? "Sin nombre" : String.valueOf(nameRaw);
                     boolean active = Boolean.TRUE.equals(map.get("active"));
-                    Object teamRaw = map.get("teamId");
+                    Object teamRaw = map.containsKey("teamId") ? map.get("teamId") : map.get("team_id");
                     String teamId = teamRaw == null ? null : String.valueOf(teamRaw);
                     result.add(new SupervisorOption(id, name, active, teamId));
                 }

@@ -38,9 +38,6 @@
             <th data-sort-key="email">Email</th>
             <th data-sort-key="name">Nombre</th>
             <th data-sort-key="role">Rol</th>
-            <th data-sort-key="supervisor">Supervisor</th>
-            <th>Cambiar Rol</th>
-            <th>Cambiar Supervisor</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -49,36 +46,6 @@
             <td th:text="${usuario.email}">correo@demo.com</td>
             <td th:text="${usuario.name}">Nombre</td>
             <td th:text="${usuario.role}">ADMIN</td>
-            <td th:text="${usuario.supervisorId != null ? (supervisorMap[usuario.supervisorId] != null ? supervisorMap[usuario.supervisorId] : 'Sin supervisor') : 'Sin supervisor'}">Sin supervisor</td>
-
-            <td>
-              <div th:if="${usuario.role == 'ADMIN'}" class="text-muted">Protegido</div>
-              <form th:if="${usuario.role != 'ADMIN'}" th:action="@{/admin/rol}" method="post" class="d-flex">
-                <input type="hidden" name="userId" th:value="${usuario.id}">
-                <select class="form-select me-2" name="role">
-                  <option value="ADMIN" th:selected="${usuario.role == 'ADMIN'}">ADMIN</option>
-                  <option value="SUPERVISOR" th:selected="${usuario.role == 'SUPERVISOR'}">SUPERVISOR</option>
-                  <option value="TECNICO" th:selected="${usuario.role == 'TECNICO'}">TECNICO</option>
-                </select>
-                <button class="btn btn-sm btn-outline-primary" type="submit">Cambiar</button>
-              </form>
-            </td>
-
-            <td>
-              <div th:if="${usuario.role != 'TECNICO'}" class="text-muted">N/A</div>
-              <form th:if="${usuario.role == 'TECNICO'}" th:action="@{/admin/tecnico/supervisor}" method="post" class="d-flex">
-                <input type="hidden" name="userId" th:value="${usuario.id}">
-                <select class="form-select me-2" name="supervisorId">
-                  <option value="" th:selected="${usuario.supervisorId == null}">Sin supervisor</option>
-                  <option th:each="sup : ${supervisores}"
-                          th:value="${sup.id}"
-                          th:selected="${sup.id == usuario.supervisorId}"
-                          th:text="${sup.name + (sup.active ? '' : ' - Inactivo')}">
-                  </option>
-                </select>
-                <button class="btn btn-sm btn-outline-primary" type="submit">Asignar</button>
-              </form>
-            </td>
 
             <td>
               <div th:if="${usuario.role == 'ADMIN'}" class="text-muted">Protegido</div>
