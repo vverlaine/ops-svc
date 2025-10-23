@@ -134,8 +134,11 @@ public class VisitServiceImpl implements VisitService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Visit> list(UUID customerId, UUID technicianId, VisitState state,
+    public Page<Visit> list(UUID customerId, UUID technicianId, UUID supervisorId, VisitState state,
             OffsetDateTime from, OffsetDateTime to, Pageable pageable) {
+        if (supervisorId != null) {
+            return visitRepository.findBySupervisor(supervisorId, from, to, pageable);
+        }
         // Implementación simple: si viene technicianId + rango, usar el finder preparado
         if (technicianId != null && from != null && to != null) {
             return visitRepository.findByTechnicianIdAndScheduledStartAtBetween(technicianId, from, to, pageable);

@@ -71,13 +71,14 @@ public class VisitController {
     @GetMapping
     public Page<Visit> list(@RequestParam(required = false) UUID customerId,
             @RequestParam(required = false) UUID technicianId,
+            @RequestParam(required = false) UUID supervisorId,
             @RequestParam(required = false) VisitState state,
             @RequestParam(required = false) OffsetDateTime from,
             @RequestParam(required = false) OffsetDateTime to,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "50") int size) {
         // Solicita al servicio las visitas filtradas y paginadas según los parámetros.
-        return service.list(customerId, technicianId, state, from, to, PageRequest.of(page, size));
+        return service.list(customerId, technicianId, supervisorId, state, from, to, PageRequest.of(page, size));
     }
 
     @GetMapping("/me/today")

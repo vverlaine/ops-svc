@@ -21,20 +21,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.app.portal.forms.CrearVisitaForm;
 import com.app.portal.client.CustomerClient;
 import com.app.portal.client.TechnicianClient;
+import com.app.portal.client.SupervisorClient;
 import com.app.portal.service.AuthClient;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.time.ZoneOffset;
 import java.time.OffsetDateTime;
 import java.time.LocalDate;
-import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -44,6 +42,7 @@ public class VisitasController {
     private final CurrentUser current;
     private final CustomerClient customerClient;
     private final TechnicianClient technicianClient;
+    private final SupervisorClient supervisorClient;
     private final AuthClient authClient;
 
     @Value("${visits.url}")
@@ -64,7 +63,9 @@ public class VisitasController {
         List<VisitDto> visitas;
         String url;
 
-        if (Objects.equals(user.getRole(), "TECNICO")) {
+        String role = user.getRole();
+
+        if (Objects.equals(role, "TECNICO")) {
             OffsetDateTime from = OffsetDateTime.now(ZoneOffset.UTC).minusDays(7);
             OffsetDateTime to = OffsetDateTime.now(ZoneOffset.UTC).plusDays(30);
             url = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits")
@@ -84,7 +85,29 @@ public class VisitasController {
             );
             visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
 
-        } else if (Objects.equals(user.getRole(), "SUPERVISOR") || Objects.equals(user.getRole(), "ADMIN")) {
+        } else if (Objects.equals(role, "SUPERVISOR")) {
+            OffsetDateTime fromRange = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
+            OffsetDateTime toRange = OffsetDateTime.now(ZoneOffset.UTC).plusDays(30);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits")
+                    .queryParam("supervisorId", user.getId())
+                    .queryParam("from", fromRange)
+                    .queryParam("to", toRange)
+                    .queryParam("page", 0)
+                    .queryParam("size", 200);
+            if (estado != null && !estado.isEmpty()) {
+                builder.queryParam("state", estado);
+            }
+            url = builder.toUriString();
+
+            ResponseEntity<PageDto<VisitDto>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    null,
+                    new ParameterizedTypeReference<PageDto<VisitDto>>() {
+            }
+            );
+            visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
+        } else if (Objects.equals(role, "ADMIN")) {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits");
             if (estado != null && !estado.isEmpty()) {
                 builder.queryParam("state", estado);
@@ -99,12 +122,6 @@ public class VisitasController {
             }
             );
             visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
-            if (Objects.equals(user.getRole(), "SUPERVISOR")) {
-                Set<String> allowedTechnicians = technicianIdsForSupervisor(user);
-                visitas = visitas.stream()
-                        .filter(v -> allowedTechnicians.contains(normalizeId(v.getTechnicianId())))
-                        .collect(Collectors.toList());
-            }
         } else {
             return "error/403";
         }
@@ -190,9 +207,9 @@ public class VisitasController {
             return "redirect:/login";
         }
         if (Objects.equals(user.getRole(), "SUPERVISOR")) {
-            Set<String> allowedTechnicians = technicianIdsForSupervisor(user);
+            Map<String, String> allowedTechnicians = technicianIdsForSupervisor(user);
             String requestedTechnician = normalizeId(form.getTechnicianId());
-            if (requestedTechnician == null || !allowedTechnicians.contains(requestedTechnician)) {
+            if (requestedTechnician == null || !allowedTechnicians.containsKey(requestedTechnician)) {
                 redirectAttributes.addFlashAttribute("error", "No puedes asignar un técnico fuera de tu equipo.");
                 return "redirect:/visits/crear";
             }
@@ -243,8 +260,8 @@ public class VisitasController {
         VisitDto visita = restTemplate.getForObject(url, VisitDto.class);
 
         if (Objects.equals(user.getRole(), "SUPERVISOR")) {
-            Set<String> allowedTechnicians = technicianIdsForSupervisor(user);
-            if (!allowedTechnicians.contains(normalizeId(visita.getTechnicianId()))) {
+            Map<String, String> allowedTechnicians = technicianIdsForSupervisor(user);
+            if (!allowedTechnicians.containsKey(normalizeId(visita.getTechnicianId()))) {
                 return "error/403";
             }
         }
@@ -282,7 +299,7 @@ public class VisitasController {
             return technicianClient.listTechnicians();
         }
         if (Objects.equals(user.getRole(), "SUPERVISOR")) {
-            Set<String> allowed = technicianIdsForSupervisor(user);
+            Map<String, String> allowed = technicianIdsForSupervisor(user);
             if (allowed.isEmpty()) {
                 return List.of();
             }
@@ -290,7 +307,7 @@ public class VisitasController {
             List<Map<String, Object>> filtered = new ArrayList<>();
             for (Map<String, Object> technician : allTechnicians) {
                 String techId = extractTechnicianId(technician);
-                if (techId != null && allowed.contains(normalizeId(techId))) {
+                if (techId != null && allowed.containsKey(normalizeId(techId))) {
                     Map<String, Object> enriched = new HashMap<>(technician);
                     enriched.put("id", techId);
                     enriched.put("userId", techId);
@@ -302,12 +319,26 @@ public class VisitasController {
         return technicianClient.listTechnicians();
     }
 
-    private Set<String> technicianIdsForSupervisor(UserDto supervisor) {
+    private Map<String, String> technicianIdsForSupervisor(UserDto supervisor) {
         if (supervisor == null || supervisor.getId() == null) {
-            return Set.of();
+            return Map.of();
         }
         String supervisorKey = normalizeId(supervisor.getId().toString());
-        Set<String> ids = new HashSet<>();
+        String supervisorTeamNormalized = null;
+        try {
+            var supervisors = supervisorClient.listSupervisors();
+            for (var opt : supervisors) {
+                if (opt == null || opt.id() == null) continue;
+                if (supervisor.getId().toString().equalsIgnoreCase(opt.id())) {
+                    if (opt.teamId() != null) {
+                        supervisorTeamNormalized = normalizeId(opt.teamId());
+                    }
+                    break;
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        Map<String, String> ids = new HashMap<>();
         try {
             List<Map<String, Object>> users = authClient.listUsers();
             for (Map<String, Object> user : users) {
@@ -324,7 +355,8 @@ public class VisitasController {
                 boolean matches = false;
                 if (supervisorId != null && supervisorKey.equals(normalizeId(supervisorId.toString()))) {
                     matches = true;
-                } else if (teamId != null && supervisorKey.equals(normalizeId(teamId.toString()))) {
+                } else if (teamId != null && supervisorTeamNormalized != null
+                        && supervisorTeamNormalized.equals(normalizeId(teamId.toString()))) {
                     matches = true;
                 }
                 if (!matches) {
@@ -335,13 +367,39 @@ public class VisitasController {
                 if (idObj == null) {
                     continue;
                 }
-                String techId = normalizeId(idObj.toString());
-                if (techId != null && !techId.isBlank()) {
-                    ids.add(techId);
+                String normalized = normalizeId(idObj.toString());
+                if (normalized != null && !normalized.isBlank()) {
+                    ids.put(normalized, idObj.toString());
                 }
             }
         } catch (Exception ex) {
             // Si no se puede contactar auth-svc, retorna conjunto vacío
+        }
+        if (ids.isEmpty()) {
+            try {
+                List<Map<String, Object>> technicians = technicianClient.listTechnicians();
+                for (Map<String, Object> tech : technicians) {
+                    String techId = extractTechnicianId(tech);
+                    if (techId == null) {
+                        continue;
+                    }
+                    String normalizedTechId = normalizeId(techId);
+                    String supervisorFromPayload = extractSupervisorId(tech);
+                    if (normalizedTechId == null || normalizedTechId.isBlank()) {
+                        continue;
+                    }
+                    if (supervisorFromPayload != null && supervisorKey.equals(normalizeId(supervisorFromPayload))) {
+                        ids.putIfAbsent(normalizedTechId, techId);
+                        continue;
+                    }
+                    Object teamCandidate = firstNonNull(tech.get("teamId"), tech.get("team_id"));
+                    if (teamCandidate != null && supervisorTeamNormalized != null
+                            && supervisorTeamNormalized.equals(normalizeId(teamCandidate.toString()))) {
+                        ids.putIfAbsent(normalizedTechId, techId);
+                    }
+                }
+            } catch (Exception ignored) {
+            }
         }
         return ids;
     }
@@ -364,6 +422,24 @@ public class VisitasController {
             String id = candidate.toString();
             if (!id.isBlank()) {
                 return id;
+            }
+        }
+        return null;
+    }
+
+    private String extractSupervisorId(Map<String, Object> map) {
+        if (map == null) {
+            return null;
+        }
+        Object[] candidates = {
+                map.get("supervisorId"),
+                map.get("supervisor_id"),
+                map.get("teamId"),
+                map.get("team_id")
+        };
+        for (Object candidate : candidates) {
+            if (candidate != null && !Objects.toString(candidate, "").isBlank()) {
+                return candidate.toString();
             }
         }
         return null;

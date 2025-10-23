@@ -29,6 +29,8 @@ import com.visits.model.VisitState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -61,4 +63,31 @@ public interface VisitRepository extends JpaRepository<Visit, UUID> {
      * @return Página con las visitas que coinciden con el estado especificado.
      */
     Page<Visit> findByState(VisitState state, Pageable pageable);
+
+    @Query(
+            value = """
+                select v.*
+                from app.visits v
+                join app.team_members tm on tm.user_id = v.technician_id
+                join app.supervisors s on (s.team_id = tm.team_id or s.user_id = tm.team_id)
+                where s.user_id = :supervisorId
+                  and (:from is null or v.scheduled_start_at >= :from)
+                  and (:to is null or v.scheduled_start_at <= :to)
+            """,
+            countQuery = """
+                select count(*)
+                from app.visits v
+                join app.team_members tm on tm.user_id = v.technician_id
+                join app.supervisors s on (s.team_id = tm.team_id or s.user_id = tm.team_id)
+                where s.user_id = :supervisorId
+                  and (:from is null or v.scheduled_start_at >= :from)
+                  and (:to is null or v.scheduled_start_at <= :to)
+            """,
+            nativeQuery = true
+    )
+    Page<Visit> findBySupervisor(
+            @Param("supervisorId") UUID supervisorId,
+            @Param("from") OffsetDateTime from,
+            @Param("to") OffsetDateTime to,
+            Pageable pageable);
 }
