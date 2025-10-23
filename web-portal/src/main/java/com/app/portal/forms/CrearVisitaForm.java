@@ -1,11 +1,13 @@
 package com.app.portal.forms;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class CrearVisitaForm {
     private String customerId;
     private String siteId;
     private String technicianId;
+    private LocalDate scheduledStartDate;
     private LocalDateTime scheduledStartAt;
     private LocalDateTime scheduledEndAt;
     private String priority;
@@ -55,6 +57,14 @@ public class CrearVisitaForm {
 
     public void setTechnicianId(String technicianId) {
         this.technicianId = technicianId;
+    }
+
+    public LocalDate getScheduledStartDate() {
+        return scheduledStartDate;
+    }
+
+    public void setScheduledStartDate(LocalDate scheduledStartDate) {
+        this.scheduledStartDate = scheduledStartDate;
     }
 
     public LocalDateTime getScheduledStartAt() {

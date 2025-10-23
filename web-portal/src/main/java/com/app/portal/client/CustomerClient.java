@@ -69,9 +69,12 @@ public class CustomerClient {
         try {
             String url = customersSvcUrl + "/customers/" + id;
             return restTemplate.getForObject(url, Map.class);
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound nf) {
+            log.warn("Cliente {} no encontrado en customers-svc", id);
+            return Map.of();
         } catch (Exception e) {
             log.error("Error al obtener cliente por ID", e);
-            return null;
+            return Map.of();
         }
     }
 }

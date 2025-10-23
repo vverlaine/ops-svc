@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.time.ZoneOffset;
 import java.time.OffsetDateTime;
+import java.time.LocalDate;
 
 @Controller
 @RequiredArgsConstructor
@@ -98,7 +99,11 @@ public class VisitasController {
         for (VisitDto visita : visitas) {
             try {
                 Map<String, Object> cliente = customerClient.getCustomerById(UUID.fromString(visita.getCustomerId()));
-                visita.setCustomerName((String) cliente.getOrDefault("name", "Desconocido"));
+                if (cliente == null || cliente.isEmpty()) {
+                    visita.setCustomerName("Cliente no disponible");
+                } else {
+                    visita.setCustomerName((String) cliente.getOrDefault("name", "Desconocido"));
+                }
             } catch (Exception e) {
                 visita.setCustomerName("Error cargando cliente");
             }
@@ -135,7 +140,9 @@ public class VisitasController {
 
     @GetMapping("/visits/crear")
     public String mostrarFormularioCreacion(Model model) {
-        model.addAttribute("visita", new CrearVisitaForm());
+        CrearVisitaForm form = new CrearVisitaForm();
+        form.setScheduledStartDate(LocalDate.now());
+        model.addAttribute("visita", form);
         model.addAttribute("clientes", customerClient.listCustomers());
         model.addAttribute("tecnicos", technicianClient.listTechnicians());
         return "visits/crear";
@@ -143,12 +150,21 @@ public class VisitasController {
 
     @PostMapping("/visits/crear")
     public String procesarFormularioCreacion(@ModelAttribute("visita") CrearVisitaForm form) {
+        var startLocal = form.getScheduledStartAt();
+        if (startLocal == null && form.getScheduledStartDate() != null) {
+            startLocal = form.getScheduledStartDate().atStartOfDay();
+        }
+        if (startLocal == null) {
+            startLocal = OffsetDateTime.now(ZoneOffset.of("-06:00")).toLocalDateTime();
+        }
 
-        OffsetDateTime start = form.getScheduledStartAt().atOffset(ZoneOffset.of("-06:00"));
-        OffsetDateTime end = form.getScheduledEndAt().atOffset(ZoneOffset.of("-06:00"));
+        var endLocal = form.getScheduledEndAt();
+        if (endLocal == null) {
+            endLocal = startLocal.plusHours(2);
+        }
 
-        System.out.println("start: " + start);
-        System.out.println("end: " + end);
+        OffsetDateTime start = startLocal.atOffset(ZoneOffset.of("-06:00"));
+        OffsetDateTime end = endLocal.atOffset(ZoneOffset.of("-06:00"));
 
         Map<String, Object> body = new HashMap<>();
         body.put("customerId", form.getCustomerId());
