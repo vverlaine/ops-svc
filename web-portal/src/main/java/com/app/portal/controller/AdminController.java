@@ -5,6 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.app.portal.client.SupervisorClient;
 import com.app.portal.service.AuthClient;
 import com.app.portal.service.AuthClient.CreateUserForm;
 import com.app.portal.dto.UserDto;
@@ -18,16 +19,29 @@ import java.util.stream.Collectors;
 @Controller
 public class AdminController {
 
-    @Autowired
-    private AuthClient auth;
+    private final AuthClient auth;
+    private final SupervisorClient supervisorClient;
 
-    public AdminController(AuthClient auth) {
+    @Autowired
+    public AdminController(AuthClient auth, SupervisorClient supervisorClient) {
         this.auth = auth;
+        this.supervisorClient = supervisorClient;
     }
 
     @GetMapping("/admin/users")
     public String listarUsuarios(Model model, HttpSession session) {
         List<Map<String, Object>> rawUsers = auth.listUsers();
+        var supervisorsOptions = supervisorClient.listSupervisors();
+        Map<String, String> supervisorNameMap = supervisorsOptions.stream()
+                .collect(Collectors.toMap(
+                        SupervisorClient.SupervisorOption::id,
+                        SupervisorClient.SupervisorOption::name,
+                        (a, b) -> a
+                ));
+        Map<String, String> teamSupervisorIdMap = supervisorsOptions.stream()
+                .filter(opt -> opt.teamId() != null)
+                .collect(Collectors.toMap(SupervisorClient.SupervisorOption::teamId,
+                        SupervisorClient.SupervisorOption::id, (a, b) -> a));
 
         List<UserDto> usuarios = rawUsers.stream().map(map -> {
             UserDto dto = new UserDto();
@@ -42,17 +56,27 @@ public class AdminController {
             dto.setEmail((String) map.get("email"));
             dto.setName((String) map.get("name"));
             dto.setRole((String) map.get("role"));
+            Object supId = map.get("supervisorId");
+            dto.setSupervisorId(supId == null ? null : supId.toString());
+            Object teamId = map.get("teamId");
+            dto.setTeamId(teamId == null ? null : teamId.toString());
+            if (dto.getSupervisorId() == null && dto.getTeamId() != null) {
+                dto.setSupervisorId(teamSupervisorIdMap.get(dto.getTeamId()));
+            }
             return dto;
         }).collect(Collectors.toList());
 
         model.addAttribute("usuarios", usuarios);
+        model.addAttribute("supervisores", supervisorsOptions);
+        model.addAttribute("supervisorMap", supervisorNameMap);
         model.addAttribute("user", session.getAttribute("user"));
         return "/admin/users";
     }
 
     @GetMapping("/admin/crear")
     public String showCreateUserForm(Model model) {
-        model.addAttribute("form", new CreateUserForm("", "", "", ""));
+        model.addAttribute("form", new CreateUserForm("", "", "", "", ""));
+        model.addAttribute("supervisores", supervisorClient.listSupervisors());
         return "admin/users-new"; // tu template HTML Thymeleaf
     }
 
@@ -68,9 +92,23 @@ public class AdminController {
         if (!ok) {
             model.addAttribute("error", err.toString());
             model.addAttribute("user", session.getAttribute("user"));
+            model.addAttribute("supervisores", supervisorClient.listSupervisors());
             return "admin/users-new";
         }
 
+        return "redirect:/admin/users";
+    }
+
+    @PostMapping("/admin/tecnico/supervisor")
+    public String changeTechnicianSupervisor(
+            @RequestParam String userId,
+            @RequestParam(required = false) String supervisorId,
+            Model model) {
+        var err = new StringBuilder();
+        boolean ok = auth.changeTechnicianSupervisor(userId, supervisorId, err);
+        if (!ok) {
+            model.addAttribute("error", err.toString());
+        }
         return "redirect:/admin/users";
     }
 

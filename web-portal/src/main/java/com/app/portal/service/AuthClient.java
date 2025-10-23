@@ -19,7 +19,7 @@ import com.app.portal.dto.UserDto;
 @Service
 public class AuthClient {
 
-    public record CreateUserForm(String email, String name, String role, String password) {
+    public record CreateUserForm(String email, String name, String role, String password, String supervisorId) {
     }
 
     @Value("${auth.base-url}")
@@ -47,7 +47,15 @@ public class AuthClient {
     public boolean createUser(CreateUserForm form, StringBuilder err) {
         String url = baseUrl + "/auth/register";
         try {
-            var res = rest.postForEntity(url, form, Map.class);
+            Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("email", form.email());
+            payload.put("name", form.name());
+            payload.put("role", form.role());
+            payload.put("password", form.password());
+            if (form.supervisorId() != null && !form.supervisorId().isBlank()) {
+                payload.put("supervisorId", form.supervisorId());
+            }
+            var res = rest.postForEntity(url, payload, Map.class);
             return res.getStatusCode().is2xxSuccessful();
         } catch (HttpClientErrorException.BadRequest e) {
             err.append(e.getResponseBodyAsString());
@@ -83,6 +91,24 @@ public class AuthClient {
             return false;
         } catch (Exception e) {
             err.append("No se pudo cambiar el rol.");
+            return false;
+        }
+    }
+
+    public boolean changeTechnicianSupervisor(String userId, String supervisorId, StringBuilder err) {
+        try {
+            String url = baseUrl + "/auth/users/" + userId + "/supervisor";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            Map<String, Object> body = Map.of("supervisorId", supervisorId == null || supervisorId.isBlank() ? null : supervisorId);
+            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+            rest.exchange(url, HttpMethod.PUT, entity, Void.class);
+            return true;
+        } catch (HttpClientErrorException.BadRequest e) {
+            err.append(e.getResponseBodyAsString());
+            return false;
+        } catch (Exception e) {
+            err.append("No se pudo cambiar el supervisor.");
             return false;
         }
     }

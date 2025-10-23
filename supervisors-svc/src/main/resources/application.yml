@@ -1,5 +1,5 @@
 server:
-  port: ${PORT:8095}
+  port: ${PORT:8096}
   forward-headers-strategy: native
 
 spring:

@@ -32,13 +32,15 @@
         <a class="btn btn-primary" th:href="@{/admin/crear}">+ Nuevo Usuario</a>
       </div>
 
-      <table class="table table-bordered table-striped">
+      <table class="table table-bordered table-striped" id="usersTable">
         <thead class="table-dark">
           <tr>
-            <th>Email</th>
-            <th>Nombre</th>
-            <th>Rol</th>
+            <th data-sort-key="email">Email</th>
+            <th data-sort-key="name">Nombre</th>
+            <th data-sort-key="role">Rol</th>
+            <th data-sort-key="supervisor">Supervisor</th>
             <th>Cambiar Rol</th>
+            <th>Cambiar Supervisor</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -47,23 +49,40 @@
             <td th:text="${usuario.email}">correo@demo.com</td>
             <td th:text="${usuario.name}">Nombre</td>
             <td th:text="${usuario.role}">ADMIN</td>
+            <td th:text="${usuario.supervisorId != null ? (supervisorMap[usuario.supervisorId] != null ? supervisorMap[usuario.supervisorId] : 'Sin supervisor') : 'Sin supervisor'}">Sin supervisor</td>
 
-            <!-- Formulario para cambiar el rol -->
             <td>
-              <form th:action="@{/admin/rol}" method="post" class="d-flex">
+              <div th:if="${usuario.role == 'ADMIN'}" class="text-muted">Protegido</div>
+              <form th:if="${usuario.role != 'ADMIN'}" th:action="@{/admin/rol}" method="post" class="d-flex">
                 <input type="hidden" name="userId" th:value="${usuario.id}">
                 <select class="form-select me-2" name="role">
-                  <option th:selected="${usuario.role == 'ADMIN'}">ADMIN</option>
-                  <option th:selected="${usuario.role == 'SUPERVISOR'}">SUPERVISOR</option>
-                  <option th:selected="${usuario.role == 'TECNICO'}">TECNICO</option>
+                  <option value="ADMIN" th:selected="${usuario.role == 'ADMIN'}">ADMIN</option>
+                  <option value="SUPERVISOR" th:selected="${usuario.role == 'SUPERVISOR'}">SUPERVISOR</option>
+                  <option value="TECNICO" th:selected="${usuario.role == 'TECNICO'}">TECNICO</option>
                 </select>
                 <button class="btn btn-sm btn-outline-primary" type="submit">Cambiar</button>
               </form>
             </td>
 
-            <!-- Botón para eliminar usuario -->
             <td>
-              <form th:action="@{/admin/eliminar}" method="post">
+              <div th:if="${usuario.role != 'TECNICO'}" class="text-muted">N/A</div>
+              <form th:if="${usuario.role == 'TECNICO'}" th:action="@{/admin/tecnico/supervisor}" method="post" class="d-flex">
+                <input type="hidden" name="userId" th:value="${usuario.id}">
+                <select class="form-select me-2" name="supervisorId">
+                  <option value="" th:selected="${usuario.supervisorId == null}">Sin supervisor</option>
+                  <option th:each="sup : ${supervisores}"
+                          th:value="${sup.id}"
+                          th:selected="${sup.id == usuario.supervisorId}"
+                          th:text="${sup.name + (sup.active ? '' : ' - Inactivo')}">
+                  </option>
+                </select>
+                <button class="btn btn-sm btn-outline-primary" type="submit">Asignar</button>
+              </form>
+            </td>
+
+            <td>
+              <div th:if="${usuario.role == 'ADMIN'}" class="text-muted">Protegido</div>
+              <form th:if="${usuario.role != 'ADMIN'}" th:action="@{/admin/eliminar}" method="post">
                 <input type="hidden" name="userId" th:value="${usuario.id}">
                 <button class="btn btn-sm btn-outline-danger" type="submit">Eliminar</button>
               </form>
@@ -75,6 +94,30 @@
 
   </div>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const table = document.getElementById('usersTable');
+      if (!table) return;
+
+      const getValue = (row, index) => row.cells[index].textContent.trim().toLowerCase();
+
+      table.querySelectorAll('th[data-sort-key]').forEach((th, index) => {
+        th.style.cursor = 'pointer';
+        let asc = true;
+        th.addEventListener('click', () => {
+          const rows = Array.from(table.tBodies[0].rows);
+          rows.sort((a, b) => {
+            const aVal = getValue(a, index);
+            const bVal = getValue(b, index);
+            return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+          });
+          asc = !asc;
+          rows.forEach(row => table.tBodies[0].appendChild(row));
+        });
+      });
+    });
+  </script>
 </body>
 
 </html>

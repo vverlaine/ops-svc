@@ -5,14 +5,16 @@ public class CreateUserForm {
     private String name;
     private String role;
     private String password;
+    private String supervisorId;
 
     public CreateUserForm() {}
 
-    public CreateUserForm(String email, String name, String role, String password) {
+    public CreateUserForm(String email, String name, String role, String password, String supervisorId) {
         this.email = email;
         this.name = name;
         this.role = role;
         this.password = password;
+        this.supervisorId = supervisorId;
     }
 
     public String getEmail() { return email; }
@@ -26,4 +28,7 @@ public class CreateUserForm {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
+
+    public String getSupervisorId() { return supervisorId; }
+    public void setSupervisorId(String supervisorId) { this.supervisorId = supervisorId; }
 }
