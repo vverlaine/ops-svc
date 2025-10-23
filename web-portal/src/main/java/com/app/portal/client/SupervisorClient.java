@@ -38,8 +38,6 @@ public class SupervisorClient {
     @SuppressWarnings("unchecked")
     public List<SupervisorOption> listSupervisors() {
         try {
-            System.out.println("SupervisorClient → URL: " + supervisorsSvcUrl);
-            System.out.println("SupervisorClient → token present: " + (supervisorsSvcToken != null && !supervisorsSvcToken.isBlank()));
             ResponseEntity<Map> responseEntity = restTemplate.exchange(
                     supervisorsSvcUrl + "/supervisors?size=200",
                     HttpMethod.GET,
@@ -58,7 +56,6 @@ public class SupervisorClient {
             List<SupervisorOption> result = new ArrayList<>();
             for (Object entry : list) {
                 if (entry instanceof Map<?, ?> map) {
-                    System.out.println("Supervisor entry: " + map);
                     Object idRaw = map.get("userId");
                     if (idRaw == null) continue;
                     String id = String.valueOf(idRaw);

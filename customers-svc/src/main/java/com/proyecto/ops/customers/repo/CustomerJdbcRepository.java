@@ -73,6 +73,7 @@ public class CustomerJdbcRepository {
                     rs.getString("tax_id"),
                     rs.getString("email"),
                     rs.getString("phone"),
+                    rs.getString("address"),
                     rs.getObject("created_at", OffsetDateTime.class)
             );
         }
@@ -91,7 +92,7 @@ public class CustomerJdbcRepository {
         int limit = Math.max(size, 1);
         int offset = Math.max(page, 0) * limit;
         String sql = """
-            select id, name, tax_id, email, phone, created_at
+            select id, name, tax_id, email, phone, address, created_at
             from app.customers
             order by created_at desc
             limit ? offset ?
@@ -124,7 +125,7 @@ public class CustomerJdbcRepository {
         int offset = Math.max(page, 0) * limit;
         String like = "%" + q.toLowerCase() + "%";
         String sql = """
-            select id, name, tax_id, email, phone, created_at
+            select id, name, tax_id, email, phone, address, created_at
             from app.customers
             where lower(name) like ? or lower(coalesce(email,'')) like ? or lower(coalesce(tax_id,'')) like ?
             order by created_at desc
@@ -159,14 +160,14 @@ public class CustomerJdbcRepository {
      * @param phone Teléfono de contacto.
      * @return Objeto CustomerBasic que representa el cliente recién creado.
      */
-    public CustomerBasic create(String name, String taxId, String email, String phone) {
+    public CustomerBasic create(String name, String taxId, String email, String phone, String address) {
         // Genera un nuevo UUID para el cliente a crear.
         UUID id = UUID.randomUUID();
         String sql = """
-            insert into app.customers(id, name, tax_id, email, phone)
-            values(?, ?, ?, ?, ?)
+            insert into app.customers(id, name, tax_id, email, phone, address)
+            values(?, ?, ?, ?, ?, ?)
         """;
-        jdbc.update(sql, id, name, taxId, email, phone);
+        jdbc.update(sql, id, name, taxId, email, phone, address);
         return findById(id).orElseThrow();
     }
 
@@ -180,7 +181,7 @@ public class CustomerJdbcRepository {
      * @param phone  Nuevo número telefónico (opcional).
      * @return Cliente actualizado o vacío si no se encontró el registro.
      */
-    public Optional<CustomerBasic> updatePartial(UUID id, String name, String taxId, String email, String phone) {
+    public Optional<CustomerBasic> updatePartial(UUID id, String name, String taxId, String email, String phone, String address) {
         // Construye dinámicamente el SQL para actualizar solo los campos que no sean nulos.
         List<Object> params = new ArrayList<>();
         StringBuilder sb = new StringBuilder("update app.customers set ");
@@ -190,6 +191,7 @@ public class CustomerJdbcRepository {
         if (taxId != null) { sb.append(first ? "" : ", ").append("tax_id=?"); params.add(taxId); first = false; }
         if (email != null) { sb.append(first ? "" : ", ").append("email=?"); params.add(email); first = false; }
         if (phone != null) { sb.append(first ? "" : ", ").append("phone=?"); params.add(phone); first = false; }
+        if (address != null) { sb.append(first ? "" : ", ").append("address=?"); params.add(address); first = false; }
 
         if (first) return findById(id); // nada que actualizar
 
@@ -218,7 +220,7 @@ public class CustomerJdbcRepository {
      */
     public Optional<CustomerBasic> findById(UUID id) {
         List<CustomerBasic> list = jdbc.query("""
-            select id, name, tax_id, email, phone, created_at
+            select id, name, tax_id, email, phone, address, created_at
             from app.customers where id=?
         """, BASIC_MAPPER, id);
         return list.stream().findFirst();

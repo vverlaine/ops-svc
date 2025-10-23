@@ -46,7 +46,6 @@ public class AdminController {
                         SupervisorClient.SupervisorOption::id, (a, b) -> a));
 
         List<UserDto> usuarios = rawUsers.stream().map(map -> {
-            System.out.println("Auth raw user: " + map);
             UserDto dto = new UserDto();
             Object idObj = map.get("id");
             if (idObj != null) {

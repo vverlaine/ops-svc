@@ -88,7 +88,8 @@ public class CustomerController {
                 req.name(),
                 req.taxId(),
                 req.email(),
-                req.phone()
+                req.phone(),
+                req.address()
         );
         return ResponseEntity.ok(saved);
     }
@@ -103,7 +104,8 @@ public class CustomerController {
                 req.name(),
                 req.taxId(),
                 req.email(),
-                req.phone()
+                req.phone(),
+                req.address()
         )
                 .<ResponseEntity<?>>map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());

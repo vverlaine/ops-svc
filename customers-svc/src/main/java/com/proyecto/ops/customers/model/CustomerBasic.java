@@ -52,6 +52,8 @@ public record CustomerBasic(
     String email,
     // Número de teléfono de contacto.
     String phone,
+    // Dirección principal del cliente.
+    String address,
     // Fecha y hora de creación del registro del cliente.
     OffsetDateTime createdAt
 ) {}

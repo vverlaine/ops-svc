@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,7 +24,12 @@ public class CustomerClient {
 
     public List<Map<String, Object>> listCustomers() {
         Map<String, Object> response = restTemplate.getForObject(customersSvcUrl + "/customers", Map.class);
-        return (List<Map<String, Object>>) response.get("content");
+        if (response == null) return List.of();
+        Object content = response.get("content");
+        if (content instanceof List<?> list) {
+            return (List<Map<String, Object>>) list;
+        }
+        return List.of();
     }
 
     public boolean createCustomer(CustomerForm form) {
@@ -32,6 +38,23 @@ public class CustomerClient {
             return true;
         } catch (Exception e) {
             log.error("Error al crear cliente", e);
+            return false;
+        }
+    }
+
+    public boolean updateCustomer(UUID id, CustomerForm form) {
+        try {
+            Map<String, Object> payload = new HashMap<>();
+            if (form.getName() != null) payload.put("name", form.getName());
+            if (form.getTaxId() != null) payload.put("taxId", form.getTaxId());
+            if (form.getEmail() != null) payload.put("email", form.getEmail());
+            if (form.getPhone() != null) payload.put("phone", form.getPhone());
+            if (form.getAddress() != null) payload.put("address", form.getAddress());
+
+            restTemplate.patchForObject(customersSvcUrl + "/customers/" + id, payload, Void.class);
+            return true;
+        } catch (Exception e) {
+            log.error("Error al actualizar cliente {}", id, e);
             return false;
         }
     }
