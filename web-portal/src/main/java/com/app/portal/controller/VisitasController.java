@@ -45,6 +45,7 @@ public class VisitasController {
     @GetMapping("/visitas")
     public String listarVisitas(
             @RequestParam(required = false) String estado,
+            @RequestParam(required = false) String prioridad,
             Model model
     ) {
         UserDto user = current.get();
@@ -95,6 +96,16 @@ public class VisitasController {
             return "error/403";
         }
 
+        if (prioridad != null && !prioridad.isBlank()) {
+            String prioridadUpper = prioridad.trim().toUpperCase();
+            visitas = visitas.stream()
+                    .filter(v -> {
+                        String visitPriority = v.getPriority();
+                        return visitPriority != null && visitPriority.trim().equalsIgnoreCase(prioridadUpper);
+                    })
+                    .toList();
+        }
+
         Map<String, String> technicianNames = new HashMap<>();
         for (VisitDto visita : visitas) {
             try {
@@ -135,6 +146,8 @@ public class VisitasController {
 
         model.addAttribute("visitas", visitas);
         model.addAttribute("rol", user.getRole());
+        model.addAttribute("estadoSeleccionado", estado);
+        model.addAttribute("prioridadSeleccionada", prioridad);
         return "visitas";
     }
 
@@ -195,8 +208,11 @@ public class VisitasController {
         try {
             Map<String, Object> cliente = customerClient.getCustomerById(UUID.fromString(visita.getCustomerId()));
             visita.setCustomerName((String) cliente.getOrDefault("name", "Desconocido"));
+            Object rawAddress = cliente.get("address");
+            visita.setCustomerAddress(rawAddress != null ? rawAddress.toString() : null);
         } catch (Exception e) {
             visita.setCustomerName("Error cargando cliente");
+            visita.setCustomerAddress(null);
         }
 
         if (visita.getTechnicianId() != null && !visita.getTechnicianId().isBlank()) {

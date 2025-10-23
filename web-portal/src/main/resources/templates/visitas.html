@@ -9,93 +9,157 @@
 </head>
 
 <body>
-    <div th:replace="~{fragments :: navbar}"></div>
+<div th:replace="~{fragments :: navbar}"></div>
 
-    <div class="container mt-4">
-        <h2 class="mb-4">Gestión de Visitas</h2>
-
-        <!-- Sección para supervisor -->
-        <div th:if="${rol == 'SUPERVISOR' or rol == 'ADMIN'}">
-            <a class="btn btn-primary mb-3" th:href="@{/visits/crear}">Crear nueva visita</a>
+<div class="container py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Gestión de Visitas</h2>
+            <p class="text-muted mb-0">
+                <span th:text="${visitas.size()}">0</span> visitas encontradas
+                <span th:if="${prioridadSeleccionada}" class="small">
+                    · Prioridad:
+                    <span th:text="${prioridadSeleccionada == 'HIGH' ? 'Alta' :
+                                    (prioridadSeleccionada == 'MEDIUM' ? 'Media' :
+                                    (prioridadSeleccionada == 'LOW' ? 'Baja' : prioridadSeleccionada))}">
+                        Media
+                    </span>
+                </span>
+                <span th:if="${estadoSeleccionado}" class="small">
+                    · Estado:
+                    <span th:text="${estadoSeleccionado == 'PLANNED' ? 'Planificada' :
+                                    (estadoSeleccionado == 'STARTED' ? 'En progreso' :
+                                    (estadoSeleccionado == 'DONE' ? 'Finalizada' : estadoSeleccionado))}">
+                        Planificada
+                    </span>
+                </span>
+            </p>
         </div>
-
-        <!-- Filtros por estado -->
-        <form method="get" th:action="@{/visitas}" class="mb-3" th:if="${rol != 'TECNICO'}">
-            <button type="submit" name="estado" value="" class="btn me-2"
-                th:classappend="${#strings.isEmpty(param.estado)} ? 'btn-outline-secondary active' : 'btn-outline-secondary'">Todos</button>
-
-            <button type="submit" name="estado" value="PLANNED" class="btn me-2"
-                th:classappend="${param.estado == 'PLANNED'} ? 'btn-outline-primary active' : 'btn-outline-primary'">Planned</button>
-
-            <button type="submit" name="estado" value="STARTED" class="btn me-2"
-                th:classappend="${param.estado == 'STARTED'} ? 'btn-outline-warning active' : 'btn-outline-warning'">Started</button>
-
-            <button type="submit" name="estado" value="DONE" class="btn me-2"
-                th:classappend="${param.estado == 'DONE'} ? 'btn-outline-success active' : 'btn-outline-success'">Done</button>
-        </form>
-
-        <!-- Tabla de visitas -->
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th data-sort-key="customer">Cliente</th>
-                    <th data-sort-key="technician">Técnico</th>
-                    <th data-sort-key="date">Fecha Creada</th>
-                    <th data-sort-key="state">Estado</th>
-                    <th data-sort-key="actions">Acciones</th>
-                    <th data-sort-key="purpose">Propósito</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="visita : ${visitas}">
-                    <td th:text="${visita.customerName}">Cliente</td>
-                    <td th:text="${visita.technicianName}">Técnico</td>
-                    <td th:text="${#temporals.format(visita.createdAt, 'yyyy-MM-dd')}"></td>
-                    <td th:text="${visita.state}">Estado</td>
-                    <td th:text="${visita.purpose}">Propósito</td>
-                    <td>
-                        <a th:href="@{'/visitas/' + ${visita.id}}" class="btn btn-info btn-sm">Ver</a>
-
-                        <button th:if="${rol == 'TECNICO' and visita.state == 'PLANNED'}"
-                            th:attr="onclick='location.href=\'/visitas/' + ${visita.id} + '/checkin\''"
-                            class="btn btn-sm btn-success">Check-in</button>
-
-                        <button th:if="${rol == 'TECNICO' and visita.state == 'STARTED'}"
-                            th:attr="onclick='location.href=\'/visitas/' + ${visita.id} + '/complete\''"
-                            class="btn btn-sm btn-warning">Completar</button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        <div th:if="${rol == 'SUPERVISOR' or rol == 'ADMIN'}">
+            <a class="btn btn-primary" th:href="@{/visits/crear}">
+                <span class="me-2">＋</span>Crear nueva visita
+            </a>
+        </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const table = document.querySelector('table.table');
-            if (!table) return;
-            const getValue = (row, index) => row.cells[index].textContent.trim();
-            const parseDate = (value) => new Date(value + 'T00:00:00');
-            table.querySelectorAll('th[data-sort-key]').forEach((th, index) => {
-                th.style.cursor = 'pointer';
-                let asc = true;
-                th.addEventListener('click', () => {
-                    const rows = Array.from(table.tBodies[0].rows);
-                    const isDate = th.dataset.sortKey === 'date';
-                    rows.sort((a, b) => {
-                        const aVal = getValue(a, index);
-                        const bVal = getValue(b, index);
-                        if (isDate) {
-                            return asc ? parseDate(aVal) - parseDate(bVal) : parseDate(bVal) - parseDate(aVal);
-                        }
-                        return asc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-                    });
-                    asc = !asc;
-                    rows.forEach(row => table.tBodies[0].appendChild(row));
-                });
-            });
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form method="get" th:action="@{/visitas}" class="row g-3 align-items-end">
+                <div class="col-12 col-md-4" th:if="${rol != 'TECNICO'}">
+                    <label for="estadoFilter" class="form-label text-muted text-uppercase small">Estado</label>
+                    <select id="estadoFilter" name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="" th:selected="${#strings.isEmpty(estadoSeleccionado)}">Todos</option>
+                        <option value="PLANNED" th:selected="${estadoSeleccionado == 'PLANNED'}">Planificada</option>
+                        <option value="STARTED" th:selected="${estadoSeleccionado == 'STARTED'}">En progreso</option>
+                        <option value="DONE" th:selected="${estadoSeleccionado == 'DONE'}">Finalizada</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label for="prioridadFilter" class="form-label text-muted text-uppercase small">Prioridad</label>
+                    <select id="prioridadFilter" name="prioridad" class="form-select" onchange="this.form.submit()">
+                        <option value="" th:selected="${#strings.isEmpty(prioridadSeleccionada)}">Todas</option>
+                        <option value="HIGH" th:selected="${prioridadSeleccionada == 'HIGH'}">Alta</option>
+                        <option value="MEDIUM" th:selected="${prioridadSeleccionada == 'MEDIUM'}">Media</option>
+                        <option value="LOW" th:selected="${prioridadSeleccionada == 'LOW'}">Baja</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-4 text-md-end">
+                    <a th:href="@{/visitas}" class="btn btn-outline-secondary w-100 w-md-auto">Limpiar filtros</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light text-uppercase small text-muted">
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Prioridad</th>
+                        <th>Programada</th>
+                        <th th:if="${rol != 'TECNICO'}">Técnico</th>
+                        <th>Propósito</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${visitas.isEmpty()}">
+                        <td class="text-center py-5"
+                            th:attr="colspan=${rol != 'TECNICO'} ? 7 : 6">
+                            <div class="text-muted">No hay visitas que coincidan con los filtros seleccionados.</div>
+                        </td>
+                    </tr>
+                    <tr th:each="visita : ${visitas}">
+                        <td>
+                            <div class="fw-semibold" th:text="${visita.customerName}">Cliente</div>
+                            <div class="text-muted small" th:text="${#strings.defaultString(visita.siteName, 'Sitio no asignado')}">Sitio no asignado</div>
+                        </td>
+                        <td>
+                            <span class="badge text-uppercase"
+                                  th:classappend="${visita.priority == 'HIGH'} ? ' bg-danger' :
+                                                  (${visita.priority == 'MEDIUM'} ? ' bg-warning text-dark' :
+                                                  (${visita.priority == 'LOW'} ? ' bg-success' : ' bg-secondary'))"
+                                  th:text="${visita.priority == 'HIGH' ? 'Alta' :
+                                           (visita.priority == 'MEDIUM' ? 'Media' :
+                                           (visita.priority == 'LOW' ? 'Baja' : 'Sin definir'))}">
+                                Media
+                            </span>
+                        </td>
+                        <td>
+                            <div class="fw-semibold" th:text="${visita.scheduledStartAt != null ? #temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy') : 'Sin fecha'}">24/10/2025</div>
+                            <div class="text-muted small"
+                                 th:if="${visita.scheduledStartAt != null and visita.scheduledEndAt != null and visita.scheduledEndAt.toLocalDate() ne visita.scheduledStartAt.toLocalDate()}"
+                                 th:text="${'al ' + #temporals.format(visita.scheduledEndAt, 'dd/MM/yyyy')}">
+                                al 25/10/2025
+                            </div>
+                        </td>
+                        <td th:if="${rol != 'TECNICO'}" th:text="${visita.technicianName}">Técnico</td>
+                        <td>
+                            <span class="badge rounded-pill bg-light text-dark border"
+                                  th:text="${#strings.defaultString(visita.purpose, 'Sin propósito')}">
+                                Mantenimiento
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge"
+                                  th:classappend="${visita.state == 'PLANNED'} ? ' bg-secondary' :
+                                                  (${visita.state == 'STARTED'} ? ' bg-info text-dark' :
+                                                  (${visita.state == 'DONE'} ? ' bg-success' : ' bg-dark'))"
+                                  th:text="${visita.state == 'PLANNED' ? 'Planificada' :
+                                           (visita.state == 'STARTED' ? 'En progreso' :
+                                           (visita.state == 'DONE' ? 'Finalizada' : visita.state))}">
+                                Planificada
+                            </span>
+                        </td>
+                        <td class="text-end">
+                            <div class="d-flex flex-wrap justify-content-end gap-2">
+                                <a th:href="@{'/visitas/' + ${visita.id}}" class="btn btn-sm btn-outline-primary">Ver</a>
+
+                                <button th:if="${rol == 'TECNICO' and visita.state == 'PLANNED'}"
+                                        th:attr="onclick='location.href=\'/visitas/' + ${visita.id} + '/checkin\''"
+                                        class="btn btn-sm btn-success">
+                                    Check-in
+                                </button>
+
+                                <button th:if="${rol == 'TECNICO' and visita.state == 'STARTED'}"
+                                        th:attr="onclick='location.href=\'/visitas/' + ${visita.id} + '/complete\''"
+                                        class="btn btn-sm btn-warning">
+                                    Completar
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

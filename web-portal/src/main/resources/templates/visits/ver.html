@@ -11,65 +11,251 @@
 <body>
 <div th:replace="~{fragments :: navbar}"></div>
 
-<div class="container mt-5">
-    <div class="card shadow border-0">
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">Detalle de la Visita</h4>
+<div class="container py-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-3 mb-4">
+        <div>
+            <h2 class="mb-1">Detalle de la visita</h2>
+            <div class="text-muted">
+                <span th:text="${visita.customerName}">Cliente</span>
+                ·
+                <span th:text="${#temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy HH:mm')}">24/10/2025 06:00</span>
+            </div>
         </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="/visitas" class="btn btn-outline-secondary">← Regresar</a>
 
-        <div class="card-body">
-            <p><strong>Cliente:</strong> <span th:text="${visita.customerName}"></span></p>
-            <p><strong>Fecha programada:</strong> <span th:text="${#temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy HH:mm')}"></span></p>
+            <button class="btn btn-success"
+                    th:if="${esTecnico and visita.state == 'PLANNED'}"
+                    th:attr="onclick='location.href=\'/visitas/' + ${visita.id} + '/checkin\''">
+                Check-in
+            </button>
 
-            <form th:action="@{'/visits/' + ${visita.id} + '/update'}" method="post">
-                <!-- Estado -->
-                <div class="mb-3">
-                    <label class="form-label"><strong>Estado:</strong></label>
-                    <select class="form-select" name="estado" th:disabled="${esTecnico}">
-                        <option value="PLANNED" th:selected="${visita.state == 'PLANNED'}">Planificada</option>
-                        <option value="STARTED" th:selected="${visita.state == 'STARTED'}">En progreso</option>
-                        <option value="DONE" th:selected="${visita.state == 'DONE'}">Finalizada</option>
-                    </select>
-                </div>
+            <button class="btn btn-warning"
+                    th:if="${esTecnico and visita.state == 'STARTED'}"
+                    th:attr="onclick='location.href=\'/visitas/' + ${visita.id} + '/complete\''">
+                Finalizar visita
+            </button>
 
-                <!-- Técnico -->
-                <p><strong>Técnico:</strong> <span th:text="${visita.technicianName}"></span></p>
+            <span class="badge bg-success d-flex align-items-center"
+                  th:if="${esTecnico and visita.state == 'DONE'}">
+                Visita completada
+            </span>
+        </div>
+    </div>
 
-                <!-- Propósito (botones) -->
-                <div class="mb-3">
-                    <label class="form-label"><strong>Propósito:</strong></label>
-                    <div class="btn-group d-flex flex-wrap gap-2" th:if="${!esTecnico}">
-                        <button type="button" class="btn btn-outline-info" onclick="setPurpose('INSTALACION')">Instalación</button>
-                        <button type="button" class="btn btn-outline-warning" onclick="setPurpose('MANTENIMIENTO')">Mantenimiento</button>
-                        <button type="button" class="btn btn-outline-success" onclick="setPurpose('REVISION')">Revisión</button>
-                        <button type="button" class="btn btn-outline-secondary" onclick="setPurpose('OTRO')">Otro</button>
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <form th:action="@{'/visits/' + ${visita.id} + '/update'}" method="post" class="h-100">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-0 pb-0">
+                        <h5 class="mb-1">Gestión de la visita</h5>
+                        <p class="text-muted small mb-0">Supervisores y administradores pueden actualizar el estado, propósito y notas.</p>
                     </div>
-                    <div th:if="${esTecnico}" class="form-control-plaintext" th:text="${visita.purpose}">-</div>
-                    <input type="hidden" name="proposito" id="proposito" th:value="${visita.purpose}">
-                    <div class="mt-2 text-muted small">Seleccionado: <span id="purposeDisplay" th:text="${visita.purpose}">-</span></div>
-                </div>
+                    <div class="card-body">
+                        <div class="row g-3 mb-1">
+                            <div class="col-md-6">
+                                <label class="form-label">Estado</label>
+                                <select class="form-select" name="estado" th:disabled="${esTecnico}">
+                                    <option value="PLANNED" th:selected="${visita.state == 'PLANNED'}">Planificada</option>
+                                    <option value="STARTED" th:selected="${visita.state == 'STARTED'}">En progreso</option>
+                                    <option value="DONE" th:selected="${visita.state == 'DONE'}">Finalizada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Prioridad</label>
+                                <div class="d-flex align-items-center h-100">
+                                    <span class="badge text-uppercase"
+                                          th:classappend="${visita.priority == 'HIGH'} ? ' bg-danger' :
+                                                          (${visita.priority == 'MEDIUM'} ? ' bg-warning text-dark' :
+                                                          (${visita.priority == 'LOW'} ? ' bg-success' : ' bg-secondary') )"
+                                          th:text="${visita.priority == 'HIGH' ? 'Alta' :
+                                                   (visita.priority == 'MEDIUM' ? 'Media' :
+                                                   (visita.priority == 'LOW' ? 'Baja' : 'Sin definir'))}">
+                                        Media
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
 
-                <!-- Notas -->
-                <div class="mb-3">
-                    <label class="form-label"><strong>Notas:</strong></label>
-                    <textarea class="form-control" name="notas" rows="3" th:text="${visita.notesPlanned}" th:readonly="${esTecnico}"></textarea>
-                </div>
+                        <div class="mb-3">
+                            <label class="form-label">Técnico asignado</label>
+                            <div class="form-control-plaintext fw-semibold" th:text="${visita.technicianName}">Sin técnico</div>
+                        </div>
 
-                <!-- Botones -->
-                <div class="d-flex justify-content-between mt-4">
-                    <a href="/visitas" class="btn btn-outline-secondary">← Regresar</a>
-                    <button type="submit" class="btn btn-success" th:disabled="${esTecnico}">💾 Guardar Cambios</button>
+                        <div class="mb-3">
+                            <label class="form-label">Propósito</label>
+                            <div class="d-flex flex-wrap gap-2" th:if="${!esTecnico}">
+                                <button type="button" class="btn btn-outline-info purpose-btn" data-value="Instalación" data-style="info">Instalación</button>
+                                <button type="button" class="btn btn-outline-warning purpose-btn" data-value="Mantenimiento" data-style="warning">Mantenimiento</button>
+                                <button type="button" class="btn btn-outline-success purpose-btn" data-value="Revisión" data-style="success">Revisión</button>
+                                <button type="button" class="btn btn-outline-danger purpose-btn" data-value="Reparación" data-style="danger">Reparación</button>
+                                <button type="button" class="btn btn-outline-secondary purpose-btn" data-value="Otro" data-style="secondary">Otro</button>
+                            </div>
+                            <div class="form-control-plaintext fw-semibold text-uppercase"
+                                 th:if="${esTecnico}"
+                                 th:text="${#strings.defaultString(visita.purpose, 'Sin propósito')}">
+                                Mantenimiento
+                            </div>
+                            <input type="hidden" name="proposito" id="proposito" th:value="${visita.purpose}">
+                            <div class="form-text mt-1">
+                                Seleccionado:
+                                <span id="purposeDisplay" th:text="${#strings.defaultString(visita.purpose, 'Sin propósito')}">Mantenimiento</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="form-label">Notas</label>
+                            <textarea class="form-control" name="notas" rows="6" th:text="${visita.notesPlanned}" th:readonly="${esTecnico}"
+                                      placeholder="Agrega instrucciones, materiales necesarios o recordatorios para el técnico."></textarea>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white border-0 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary" th:disabled="${esTecnico}">
+                            💾 Guardar cambios
+                        </button>
+                    </div>
                 </div>
             </form>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">Información general</h6>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <small class="text-muted text-uppercase">Cliente</small>
+                        <div class="fw-semibold" th:text="${visita.customerName}">Cliente</div>
+                    </li>
+                    <li class="list-group-item">
+                        <small class="text-muted text-uppercase">Dirección</small>
+                        <div th:text="${#strings.isEmpty(visita.customerAddress) ? 'Sin dirección registrada' : visita.customerAddress}">
+                            Sin dirección registrada
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <small class="text-muted text-uppercase">Sitio</small>
+                        <div th:text="${#strings.defaultString(visita.siteName, 'Sin sitio asociado')}">Sin sitio asociado</div>
+                    </li>
+                    <li class="list-group-item">
+                        <small class="text-muted text-uppercase">Estado actual</small>
+                        <span class="badge"
+                              th:classappend="${visita.state == 'PLANNED'} ? ' bg-secondary' :
+                                              (${visita.state == 'STARTED'} ? ' bg-info text-dark' :
+                                              (${visita.state == 'DONE'} ? ' bg-success' : ' bg-dark'))"
+                              th:text="${visita.state == 'PLANNED' ? 'Planificada' :
+                                       (visita.state == 'STARTED' ? 'En progreso' :
+                                       (visita.state == 'DONE' ? 'Finalizada' : visita.state))}">
+                            Planificada
+                        </span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">Tiempos de la visita</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted text-uppercase">Inicio programado</small>
+                        <div class="fw-semibold" th:text="${visita.scheduledStartAt != null ?
+                                    #temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy HH:mm') : 'Sin registro'}">
+                            24/10/2025 06:00
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted text-uppercase">Fin programado</small>
+                        <div class="fw-semibold" th:text="${visita.scheduledEndAt != null ?
+                                    #temporals.format(visita.scheduledEndAt, 'dd/MM/yyyy HH:mm') : 'Sin registro'}">
+                            24/10/2025 08:00
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted text-uppercase">Check-in</small>
+                        <div th:text="${visita.checkInAt != null ?
+                                #temporals.format(visita.checkInAt, 'dd/MM/yyyy HH:mm') : 'Pendiente'}">
+                            Pendiente
+                        </div>
+                    </div>
+                    <div>
+                        <small class="text-muted text-uppercase">Check-out</small>
+                        <div th:text="${visita.checkOutAt != null ?
+                                #temporals.format(visita.checkOutAt, 'dd/MM/yyyy HH:mm') : 'Pendiente'}">
+                            Pendiente
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    function setPurpose(value) {
-        document.getElementById('proposito').value = value;
-        document.getElementById('purposeDisplay').innerText = value;
-    }
+    document.addEventListener('DOMContentLoaded', function () {
+        const purposeButtons = document.querySelectorAll('.purpose-btn');
+        const purposeInput = document.getElementById('proposito');
+        const purposeDisplay = document.getElementById('purposeDisplay');
+        if (!purposeInput) {
+            return;
+        }
+
+        const styles = ['info', 'warning', 'success', 'danger', 'secondary'];
+        const purposeLabels = {
+            INSTALACION: 'Instalación',
+            MANTENIMIENTO: 'Mantenimiento',
+            REVISION: 'Revisión',
+            REPARACION: 'Reparación',
+            INSPECCION: 'Inspección',
+            OTRO: 'Otro'
+        };
+        const normalize = (value) => (value || '')
+            .trim()
+            .toUpperCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '');
+
+        const applyState = (btn, selected) => {
+            const style = btn.dataset.style || 'secondary';
+            styles.forEach((suffix) => btn.classList.remove('btn-' + suffix, 'btn-outline-' + suffix));
+            btn.classList.remove('text-dark', 'active');
+            if (selected) {
+                btn.classList.add('btn-' + style, 'active');
+                if (style === 'warning') {
+                    btn.classList.add('text-dark');
+                }
+            } else {
+                btn.classList.add('btn-outline-' + style);
+            }
+        };
+
+        const updateDisplay = (value) => {
+            if (!purposeDisplay) return;
+            const normalizedValue = normalize(value);
+            const label = purposeLabels[normalizedValue] || (value && value.length ? value : 'Sin propósito');
+            purposeDisplay.textContent = label;
+        };
+
+        const highlightSelection = (value) => {
+            const normalizedValue = normalize(value);
+            purposeButtons.forEach(btn => applyState(btn, normalize(btn.dataset.value) === normalizedValue));
+        };
+
+        purposeButtons.forEach(btn => {
+            btn.dataset.label = btn.dataset.label || btn.textContent.trim();
+            applyState(btn, false);
+            btn.addEventListener('click', () => {
+                const value = btn.dataset.value;
+                purposeInput.value = value;
+                updateDisplay(value);
+                highlightSelection(value);
+            });
+        });
+
+        updateDisplay(purposeInput.value);
+        highlightSelection(purposeInput.value);
+    });
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
