@@ -18,7 +18,7 @@
           </li>
 
           <li class="nav-item" th:if="${user != null and user.role == 'SUPERVISOR'}">
-            <a class="nav-link" th:href="@{/visits}">Visitas</a>
+            <a class="nav-link" th:href="@{/visitas}">Visitas</a>
           </li>
 
           <li class="nav-item" th:if="${user != null and user.role == 'ADMIN'}">

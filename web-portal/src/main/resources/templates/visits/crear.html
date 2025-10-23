@@ -20,6 +20,10 @@
                 Nueva visita
             </div>
             <div class="card-body">
+        <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+        <div class="alert alert-warning" th:if="${sinTecnicos}">
+            No tienes técnicos asignados. Solicita a un administrador que te asigne personal antes de crear una visita.
+        </div>
         <form th:action="@{/visits/crear}" th:object="${visita}" method="post" class="row g-3">
             <div class="col-12">
                 <label class="form-label fw-semibold">Cliente</label>
@@ -49,7 +53,7 @@
 
             <div class="col-md-6">
                 <label class="form-label fw-semibold">Técnico asignado</label>
-                <select th:field="*{technicianId}" class="form-select">
+                <select th:field="*{technicianId}" class="form-select" th:disabled="${sinTecnicos}">
                     <option value="">Seleccione un técnico</option>
                     <option th:each="t : ${tecnicos}"
                             th:value="${t['id']}"
@@ -86,7 +90,7 @@
 
             <div class="col-12 d-flex justify-content-between flex-wrap gap-2">
                 <a href="/visitas" class="btn btn-outline-secondary">← Regresar</a>
-                <button type="submit" class="btn btn-primary px-4">Crear visita</button>
+                <button type="submit" class="btn btn-primary px-4" th:disabled="${sinTecnicos}">Crear visita</button>
             </div>
         </form>
             </div>

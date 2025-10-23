@@ -16,19 +16,23 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.app.portal.forms.CrearVisitaForm;
 import com.app.portal.client.CustomerClient;
 import com.app.portal.client.TechnicianClient;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.time.ZoneOffset;
 import java.time.OffsetDateTime;
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
@@ -92,6 +96,12 @@ public class VisitasController {
             }
             );
             visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
+            if (Objects.equals(user.getRole(), "SUPERVISOR")) {
+                Set<String> allowedTechnicians = technicianIdsForSupervisor(user);
+                visitas = visitas.stream()
+                        .filter(v -> allowedTechnicians.contains(normalizeId(v.getTechnicianId())))
+                        .collect(Collectors.toList());
+            }
         } else {
             return "error/403";
         }
@@ -153,16 +163,37 @@ public class VisitasController {
 
     @GetMapping("/visits/crear")
     public String mostrarFormularioCreacion(Model model) {
+        UserDto user = current.get();
+        if (user == null) {
+            return "redirect:/login";
+        }
         CrearVisitaForm form = new CrearVisitaForm();
         form.setScheduledStartDate(LocalDate.now());
         model.addAttribute("visita", form);
         model.addAttribute("clientes", customerClient.listCustomers());
-        model.addAttribute("tecnicos", technicianClient.listTechnicians());
+        List<Map<String, Object>> tecnicosDisponibles = techniciansAvailableFor(user);
+        model.addAttribute("tecnicos", tecnicosDisponibles);
+        model.addAttribute("sinTecnicos", tecnicosDisponibles.isEmpty());
         return "visits/crear";
     }
 
     @PostMapping("/visits/crear")
-    public String procesarFormularioCreacion(@ModelAttribute("visita") CrearVisitaForm form) {
+    public String procesarFormularioCreacion(
+            @ModelAttribute("visita") CrearVisitaForm form,
+            RedirectAttributes redirectAttributes
+    ) {
+        UserDto user = current.get();
+        if (user == null) {
+            return "redirect:/login";
+        }
+        if (Objects.equals(user.getRole(), "SUPERVISOR")) {
+            Set<String> allowedTechnicians = technicianIdsForSupervisor(user);
+            String requestedTechnician = normalizeId(form.getTechnicianId());
+            if (requestedTechnician == null || !allowedTechnicians.contains(requestedTechnician)) {
+                redirectAttributes.addFlashAttribute("error", "No puedes asignar un técnico fuera de tu equipo.");
+                return "redirect:/visits/crear";
+            }
+        }
         var startLocal = form.getScheduledStartAt();
         if (startLocal == null && form.getScheduledStartDate() != null) {
             startLocal = form.getScheduledStartDate().atStartOfDay();
@@ -200,9 +231,20 @@ public class VisitasController {
 
     @GetMapping("/visitas/{id}")
     public String verVisita(@PathVariable String id, Model model) {
+        UserDto user = current.get();
+        if (user == null) {
+            return "redirect:/login";
+        }
         // Obtener la visita desde visits-svc
         String url = visitsSvcUrl + "/visits/" + id;
         VisitDto visita = restTemplate.getForObject(url, VisitDto.class);
+
+        if (Objects.equals(user.getRole(), "SUPERVISOR")) {
+            Set<String> allowedTechnicians = technicianIdsForSupervisor(user);
+            if (!allowedTechnicians.contains(normalizeId(visita.getTechnicianId()))) {
+                return "error/403";
+            }
+        }
 
         // Obtener nombre del cliente (si aplica)
         try {
@@ -230,6 +272,71 @@ public class VisitasController {
         model.addAttribute("visita", visita);
         model.addAttribute("esTecnico", current.isLoggedIn() && Objects.equals(current.getRole(), "TECNICO"));
         return "visits/ver"; // <-- este es el HTML que debes crear
+    }
+
+    private List<Map<String, Object>> techniciansAvailableFor(UserDto user) {
+        if (user == null) {
+            return technicianClient.listTechnicians();
+        }
+        if (Objects.equals(user.getRole(), "SUPERVISOR")) {
+            UUID supervisorId = user.getId();
+            if (supervisorId == null) {
+                return List.of();
+            }
+            return technicianClient.listTechniciansForSupervisor(supervisorId);
+        }
+        return technicianClient.listTechnicians();
+    }
+
+    private Set<String> technicianIdsForSupervisor(UserDto supervisor) {
+        if (supervisor == null || supervisor.getId() == null) {
+            return Set.of();
+        }
+        return extractTechnicianIds(technicianClient.listTechniciansForSupervisor(supervisor.getId()));
+    }
+
+    private Set<String> extractTechnicianIds(List<Map<String, Object>> technicians) {
+        Set<String> ids = new HashSet<>();
+        if (technicians == null) {
+            return ids;
+        }
+        for (Map<String, Object> technician : technicians) {
+            String id = extractTechnicianId(technician);
+            if (id != null) {
+                ids.add(normalizeId(id));
+            }
+        }
+        return ids;
+    }
+
+    private String extractTechnicianId(Map<String, Object> technician) {
+        if (technician == null) {
+            return null;
+        }
+        Object[] candidates = {
+                technician.get("id"),
+                technician.get("userId"),
+                technician.get("user_id"),
+                technician.get("technicianId"),
+                technician.get("technician_id")
+        };
+        for (Object candidate : candidates) {
+            if (candidate == null) {
+                continue;
+            }
+            String id = candidate.toString();
+            if (!id.isBlank()) {
+                return id;
+            }
+        }
+        return null;
+    }
+
+    private String normalizeId(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.trim().toLowerCase();
     }
 
     @PostMapping("/visits/{id}/update")
