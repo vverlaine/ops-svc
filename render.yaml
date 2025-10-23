@@ -52,6 +52,29 @@ services:
         value: https://tu-auth-en-render.onrender.com
 
   - type: web
+    name: supervisors-svc
+    plan: free
+    runtime: docker
+    dockerfilePath: supervisors-svc/Dockerfile
+    dockerContext: .
+    rootDir: .
+    branch: main
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    autoDeploy: true
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase: { name: ops-postgres, property: connectionString }
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase: { name: ops-postgres, property: user }
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase: { name: ops-postgres, property: password }
+      - key: USERS_BASE_URL
+        value: https://tu-auth-en-render.onrender.com
+      - key: AUTH_BASE_URL
+        value: https://tu-auth-en-render.onrender.com
+
+  - type: web
     name: contacts-svc
     plan: free
     runtime: docker
@@ -194,5 +217,7 @@ services:
         value: https://customers-svc.onrender.com
       - key: TECHNICIANS_BASE_URL
         value: https://technicians-svc.onrender.com
+      - key: SUPERVISORS_BASE_URL
+        value: https://supervisors-svc.onrender.com
       - key: SITES_BASE_URL
         value: https://sites-svc.onrender.com

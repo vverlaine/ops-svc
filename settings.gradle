@@ -1,2 +1,2 @@
 rootProject.name = 'ops-svc'
-include 'common', 'customers-svc', 'assets-svc', 'tickets-svc', 'work-orders-svc', 'sites-svc', 'contacts-svc', 'technicians-svc', 'visits-svc', 'web-portal'
+include 'common', 'customers-svc', 'assets-svc', 'tickets-svc', 'work-orders-svc', 'sites-svc', 'contacts-svc', 'technicians-svc', 'supervisors-svc', 'visits-svc', 'web-portal'

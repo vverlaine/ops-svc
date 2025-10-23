@@ -1,0 +1,37 @@
+server:
+  port: ${PORT:8095}
+  forward-headers-strategy: native
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.default_schema: app
+      hibernate.show_sql: false
+      hibernate.jdbc.time_zone: UTC
+      hibernate.ddl-auto: validate
+  flyway:
+    enabled: true
+    schemas: app
+    default-schema: app
+
+users:
+  base-url: ${USERS_BASE_URL:http://localhost:8081}
+
+auth:
+  base-url: ${AUTH_BASE_URL:http://localhost:8099}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
