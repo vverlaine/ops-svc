@@ -1,60 +1,86 @@
 <!-- templates/fragments.html -->
 <div th:fragment="navbar">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <nav class="navbar navbar-expand-lg navbar-dark" style="background: #101827;"
+       th:with="isDashboard=${currentUri == '/dashboard'},
+                role=${user != null ? user.role : ''}">
     <div class="container-fluid">
-      <a class="navbar-brand" th:href="@{/dashboard}">SkyNet</a>
+      <a class="navbar-brand fw-semibold" th:href="@{/dashboard}">
+        SkyNet
+      </a>
 
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-              data-bs-target="#navbarNav" aria-controls="navbarNav"
+              data-bs-target="#mainNav" aria-controls="mainNav"
               aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
 
-      <div class="collapse navbar-collapse" id="navbarNav">
-        <!-- Menú izquierdo -->
+      <div class="collapse navbar-collapse" id="mainNav">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" th:href="@{/dashboard}">Inicio</a>
+            <a class="nav-link" th:classappend="${isDashboard} ? ' active fw-semibold' : ''"
+               th:href="@{/dashboard}">Inicio</a>
           </li>
 
-          <li class="nav-item" th:if="${user != null and user.role == 'SUPERVISOR'}">
-            <a class="nav-link" th:href="@{/visitas}">Visitas</a>
+          <li class="nav-item" th:if="${role == 'ADMIN' and !isDashboard}">
+            <a class="nav-link"
+               th:classappend="${#strings.startsWith(currentUri,'/admin')} ? ' active fw-semibold' : ''"
+               th:href="@{/admin/users}">Usuarios</a>
           </li>
 
-          <li class="nav-item" th:if="${user != null and user.role == 'ADMIN'}">
-            <a class="nav-link" th:href="@{/admin/users}">Usuarios</a>
+          <li class="nav-item" th:if="${role == 'ADMIN' and !isDashboard}">
+            <a class="nav-link"
+               th:classappend="${#strings.startsWith(currentUri,'/clientes')} ? ' active fw-semibold' : ''"
+               th:href="@{/clientes}">Clientes</a>
           </li>
 
-          <li class="nav-item" th:if="${user != null and user.role == 'ADMIN'}">
-            <a class="nav-link" th:href="@{/clientes}">Clientes</a>
+          <li class="nav-item" th:if="${role == 'ADMIN' and !isDashboard}">
+            <a class="nav-link"
+               th:classappend="${#strings.startsWith(currentUri,'/visitas')} ? ' active fw-semibold' : ''"
+               th:href="@{/visitas}">Visitas</a>
           </li>
 
-          <li class="nav-item" th:if="${user != null and (user.role == 'TECNICO' or user.role == 'ADMIN')}">
-            <a class="nav-link" th:href="@{/visitas}">Visitas</a>
+          <li class="nav-item dropdown" th:if="${role == 'SUPERVISOR' and !isDashboard}">
+            <a class="nav-link dropdown-toggle"
+               href="#" id="supervisorNav" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Visitas
+            </a>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="supervisorNav">
+              <li><a class="dropdown-item" th:href="@{/visitas}"
+                     th:classappend="${#strings.startsWith(currentUri,'/visitas')} ? ' active fw-semibold' : ''">
+                Listado</a></li>
+              <li><a class="dropdown-item" th:href="@{/visits/crear}"
+                     th:classappend="${#strings.startsWith(currentUri,'/visits/crear')} ? ' active fw-semibold' : ''">
+                Crear visita</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item" th:if="${role == 'TECNICO' and !isDashboard}">
+            <a class="nav-link"
+               th:classappend="${#strings.startsWith(currentUri,'/visitas')} ? ' active fw-semibold' : ''"
+               th:href="@{/visitas}">Mis visitas</a>
           </li>
         </ul>
 
-        <!-- Menú derecho -->
-        <ul class="navbar-nav">
-          <!-- Si el usuario está logueado -->
-          <li class="nav-item" th:if="${user != null}">
-            <a class="nav-link disabled" href="#">
-              Hola,
-              <span th:text="${user.name != null ? user.name : 'Usuario'}">Usuario</span>
-            </a>
+        <ul class="navbar-nav align-items-lg-center">
+          <li class="nav-item me-lg-2" th:if="${user != null}">
+            <span class="badge rounded-pill bg-light text-dark px-3 py-2">
+              <span class="fw-semibold" th:text="${user.role}">ROL</span>
+            </span>
           </li>
-
+          <li class="nav-item me-lg-3" th:if="${user != null}">
+            <span class="navbar-text text-white-50">
+              Hola,&nbsp;<span class="fw-semibold text-white" th:text="${user.name != null ? user.name : 'Usuario'}">Usuario</span>
+            </span>
+          </li>
           <li class="nav-item" th:if="${user != null}">
-            <form th:action="@{/logout}" method="post" style="display:inline;">
-              <button class="nav-link btn btn-link" type="submit" style="color:white; text-decoration:none;">
+            <form th:action="@{/logout}" method="post" class="d-inline">
+              <button class="btn btn-sm btn-outline-light px-3" type="submit">
                 Salir
               </button>
             </form>
           </li>
-
-          <!-- Si no hay usuario logueado -->
           <li class="nav-item" th:if="${user == null}">
-            <a class="nav-link" th:href="@{/login}">Login</a>
+            <a class="btn btn-sm btn-outline-light" th:href="@{/login}">Login</a>
           </li>
         </ul>
       </div>

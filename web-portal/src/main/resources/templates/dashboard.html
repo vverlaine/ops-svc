@@ -5,48 +5,219 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <title>Dashboard</title>
+  <style>
+    body {
+      background-color: #f5f7fb;
+    }
+
+    .dashboard-hero {
+      background: linear-gradient(135deg, #2563eb, #3b82f6);
+      border-radius: 1rem;
+      color: #fff;
+      padding: 2.5rem;
+      box-shadow: 0 15px 35px rgba(37, 99, 235, 0.25);
+    }
+
+    .dashboard-hero small {
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      opacity: .8;
+    }
+
+    .dashboard-hero h1 {
+      font-weight: 700;
+    }
+
+    .role-badge {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      padding: .35rem 1rem;
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      font-weight: 600;
+    }
+
+    .quick-card {
+      border: none;
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+      transition: transform .25s ease, box-shadow .25s ease;
+      height: 100%;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 35px rgba(15, 23, 42, .14);
+    }
+
+    .quick-card .icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .quick-card .btn {
+      border-radius: 999px;
+      font-weight: 600;
+    }
+
+    .grid-gap {
+      row-gap: 1.5rem;
+    }
+  </style>
 </head>
 
 <body>
-
-  <!-- Navbar -->
   <div th:replace="~{fragments :: navbar}"></div>
 
-  <!-- Contenedor principal -->
-  <div class="container mt-5">
-    <h1 class="mb-4">Bienvenido, <span th:text="${user != null && user.name != null ? user.name : 'Usuario'}">Usuario</span>
-
-    <!-- ADMIN -->
-    <div th:if="${user.role == 'ADMIN'}">
-      <h3>Panel de Administrador</h3>
-      <ul class="list-group">
-        <li class="list-group-item"><a th:href="@{/admin/users}">Gestión de Usuarios</a></li>
-        <li class="list-group-item text-muted">[Estadísticas generales: opcional]</li>
-      </ul>
+  <div class="container py-5" th:with="rol=${user != null ? user.role : 'USUARIO'}">
+    <div class="dashboard-hero mb-5">
+      <div class="row align-items-center gy-3">
+        <div class="col-lg-8">
+          <small>Panel principal</small>
+          <h1 class="mb-2">Hola, <span th:text="${user != null && user.name != null ? user.name : 'Usuario'}">Usuario</span></h1>
+          <p class="mb-0 fs-5" th:switch="${rol}">
+            <span th:case="'ADMIN'">Administra usuarios, clientes y visibilidad global del sistema.</span>
+            <span th:case="'SUPERVISOR'">Coordina visitas, reasigna técnicos y monitorea tu equipo.</span>
+            <span th:case="'TECNICO'">Consulta tus tareas del día y registra check-in / check-out fácilmente.</span>
+            <span th:case="*">Explora las secciones disponibles según tu rol.</span>
+          </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+          <span class="role-badge">
+            <i class="bi bi-person-badge"></i>
+            <span th:text="${rol}">Rol</span>
+          </span>
+        </div>
+      </div>
     </div>
 
-    <!-- SUPERVISOR -->
-    <div th:if="${user.role == 'SUPERVISOR'}">
-      <h3>Panel de Supervisor</h3>
-      <ul class="list-group">
-        <li class="list-group-item"><a th:href="@{/visitas/planificar}">Planificar Visitas</a></li>
-        <li class="list-group-item"><a th:href="@{/visitas/mis-tecnicos}">Agenda de Técnicos</a></li>
-      </ul>
+    <div class="row g-4 grid-gap" th:if="${rol == 'ADMIN'}">
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-primary text-white">
+            <i class="bi bi-people"></i>
+          </div>
+          <h5 class="fw-bold">Gestión de usuarios</h5>
+          <p class="text-muted flex-grow-1">Crea, edita o desactiva cuentas con roles personalizados.</p>
+          <a th:href="@{/admin/users}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-right-circle me-1"></i> Ir a usuarios
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-info text-white">
+            <i class="bi bi-building"></i>
+          </div>
+          <h5 class="fw-bold">Clientes y sitios</h5>
+          <p class="text-muted flex-grow-1">Mantén la información de clientes al día y sus ubicaciones.</p>
+          <a th:href="@{/clientes}" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-geo-alt me-1"></i> Gestionar clientes
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-success text-white">
+            <i class="bi bi-bar-chart"></i>
+          </div>
+          <h5 class="fw-bold">Seguimiento operativo</h5>
+          <p class="text-muted flex-grow-1">Consulta visitas, técnicos y supervisores activos en el sistema.</p>
+          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-search me-1"></i> Ver actividad
+          </a>
+        </div>
+      </div>
     </div>
 
-    <!-- TECNICO -->
-    <div th:if="${user.role == 'TECNICO'}">
-      <h3>Panel de Técnico</h3>
-      <ul class="list-group">
-        <li class="list-group-item"><a th:href="@{/visitas}">Mis Visitas de Hoy</a></li>
-        <li class="list-group-item text-muted">Check-In / Check-Out / Mapa / Reporte</li>
-      </ul>
+    <div class="row g-4 grid-gap" th:if="${rol == 'SUPERVISOR'}">
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-primary text-white">
+            <i class="bi bi-calendar-plus"></i>
+          </div>
+          <h5 class="fw-bold">Planificar visita</h5>
+          <p class="text-muted flex-grow-1">Crea una nueva visita, define prioridad y asigna un técnico.</p>
+          <a th:href="@{/visits/crear}" class="btn btn-primary mt-2">
+            <i class="bi bi-plus-circle me-1"></i> Nueva visita
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-warning text-dark">
+            <i class="bi bi-clipboard-check"></i>
+          </div>
+          <h5 class="fw-bold">Visitas programadas</h5>
+          <p class="text-muted flex-grow-1">Supervisa el estado de cada visita y realiza cambios rápidos.</p>
+          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-eye me-1"></i> Revisar visitas
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-success text-white">
+            <i class="bi bi-people"></i>
+          </div>
+          <h5 class="fw-bold">Agenda del equipo</h5>
+          <p class="text-muted flex-grow-1">Consulta las asignaciones de tus técnicos y balancea carga.</p>
+          <a th:href="@{/visitas/mis-tecnicos}" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-journal-text me-1"></i> Ver agenda
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 grid-gap" th:if="${rol == 'TECNICO'}">
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-primary text-white">
+            <i class="bi bi-calendar-day"></i>
+          </div>
+          <h5 class="fw-bold">Visitas de hoy</h5>
+          <p class="text-muted flex-grow-1">Consulta tus visitas asignadas y revisa instrucciones previas.</p>
+          <a th:href="@{/visitas}" class="btn btn-primary mt-2">
+            <i class="bi bi-arrow-right-circle me-1"></i> Abrir agenda
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-success text-white">
+            <i class="bi bi-check2-square"></i>
+          </div>
+          <h5 class="fw-bold">Check-in / Check-out</h5>
+          <p class="text-muted flex-grow-1">Marca tus tiempos de llegada y salida para cada visita.</p>
+          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-stopwatch me-1"></i> Registrar tiempos
+          </a>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card quick-card h-100 p-4">
+          <div class="icon bg-warning text-dark">
+            <i class="bi bi-geo-alt"></i>
+          </div>
+          <h5 class="fw-bold">Mapa y rutas</h5>
+          <p class="text-muted flex-grow-1">Accede a la ubicación de cada cliente y planifica tus traslados.</p>
+          <a th:href="@{/visitas}" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-map me-1"></i> Ver mapa
+          </a>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Bootstrap JS para funcionalidad del navbar -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

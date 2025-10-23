@@ -18,7 +18,7 @@
             <div class="text-muted">
                 <span th:text="${visita.customerName}">Cliente</span>
                 ·
-                <span th:text="${#temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy HH:mm')}">24/10/2025 06:00</span>
+                <span th:text="${#temporals.format(visita.scheduledStartAt, 'yyyy-MM-dd')}">2025-10-24</span>
             </div>
         </div>
         <div class="d-flex flex-wrap gap-2">
@@ -45,11 +45,14 @@
 
     <div class="row g-4">
         <div class="col-lg-8">
+            <div class="alert alert-warning" th:if="${!esTecnico and sinTecnicosGestion}">
+                No tienes técnicos asignados disponibles para reasignar esta visita.
+            </div>
             <form th:action="@{'/visits/' + ${visita.id} + '/update'}" method="post" class="h-100">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-header bg-white border-0 pb-0">
                         <h5 class="mb-1">Gestión de la visita</h5>
-                        <p class="text-muted small mb-0">Supervisores y administradores pueden actualizar el estado, propósito y notas.</p>
+                        <p class="text-muted small mb-0">Supervisores y administradores pueden actualizar los datos clave de la visita.</p>
                     </div>
                     <div class="card-body">
                         <div class="row g-3 mb-1">
@@ -63,7 +66,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Prioridad</label>
-                                <div class="d-flex align-items-center h-100">
+                                <div class="d-flex align-items-center h-100" th:if="${esTecnico}">
                                     <span class="badge text-uppercase"
                                           th:classappend="${visita.priority == 'HIGH'} ? ' bg-danger' :
                                                           (${visita.priority == 'MEDIUM'} ? ' bg-warning text-dark' :
@@ -74,12 +77,38 @@
                                         Media
                                     </span>
                                 </div>
+                                <select class="form-select" name="prioridad" th:if="${!esTecnico}">
+                                    <option value="LOW" th:selected="${visita.priority == 'LOW'}">Baja</option>
+                                    <option value="MEDIUM" th:selected="${visita.priority == 'MEDIUM'}">Media</option>
+                                    <option value="HIGH" th:selected="${visita.priority == 'HIGH'}">Alta</option>
+                                </select>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Técnico asignado</label>
-                            <div class="form-control-plaintext fw-semibold" th:text="${visita.technicianName}">Sin técnico</div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Fecha programada</label>
+                                <input type="date" class="form-control" name="fechaProgramada"
+                                       th:value="${visita.scheduledStartAt != null ? #temporals.format(visita.scheduledStartAt, 'yyyy-MM-dd') : ''}"
+                                       th:disabled="${esTecnico}" th:readonly="${esTecnico}">
+                                <div class="form-text" th:if="${esTecnico}">Sólo lectura para técnicos.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Técnico asignado</label>
+                                <div th:if="${esTecnico}" class="form-control-plaintext fw-semibold" th:text="${visita.technicianName}">Sin técnico</div>
+                                <select th:if="${!esTecnico}" class="form-select" name="tecnicoId" th:disabled="${sinTecnicosGestion}">
+                                    <option value=""
+                                            th:text="${sinTecnicosGestion ? 'Sin técnicos disponibles' : 'Seleccione un técnico'}"
+                                            th:disabled="${sinTecnicosGestion}"
+                                            th:selected="${visita.technicianId == null}">
+                                    </option>
+                                    <option th:each="tec : ${tecnicosDisponibles}"
+                                            th:value="${tec['id']}"
+                                            th:selected="${tec['id'] == visita.technicianId}"
+                                            th:text="${tec['userName'] != null ? tec['userName'] : (tec['name'] != null ? tec['name'] : 'Sin nombre')}">
+                                    </option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -161,15 +190,8 @@
                     <div class="mb-3">
                         <small class="text-muted text-uppercase">Inicio programado</small>
                         <div class="fw-semibold" th:text="${visita.scheduledStartAt != null ?
-                                    #temporals.format(visita.scheduledStartAt, 'dd/MM/yyyy HH:mm') : 'Sin registro'}">
-                            24/10/2025 06:00
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <small class="text-muted text-uppercase">Fin programado</small>
-                        <div class="fw-semibold" th:text="${visita.scheduledEndAt != null ?
-                                    #temporals.format(visita.scheduledEndAt, 'dd/MM/yyyy HH:mm') : 'Sin registro'}">
-                            24/10/2025 08:00
+                                    #temporals.format(visita.scheduledStartAt, 'yyyy-MM-dd') : 'Sin registro'}">
+                            2025-10-24
                         </div>
                     </div>
                     <div class="mb-3">

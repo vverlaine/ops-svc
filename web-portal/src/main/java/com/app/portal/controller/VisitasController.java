@@ -24,16 +24,19 @@ import com.app.portal.client.TechnicianClient;
 import com.app.portal.client.SupervisorClient;
 import com.app.portal.service.AuthClient;
 
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
-import java.time.ZoneOffset;
-import java.time.OffsetDateTime;
-import java.time.LocalDate;
 
 @Controller
 @RequiredArgsConstructor
@@ -257,13 +260,6 @@ public class VisitasController {
         String url = visitsSvcUrl + "/visits/" + id;
         VisitDto visita = restTemplate.getForObject(url, VisitDto.class);
 
-        if (Objects.equals(user.getRole(), "SUPERVISOR")) {
-            Map<String, String> allowedTechnicians = technicianIdsForSupervisor(user);
-            if (!allowedTechnicians.containsKey(normalizeId(visita.getTechnicianId()))) {
-                return "error/403";
-            }
-        }
-
         // Obtener nombre del cliente (si aplica)
         try {
             Map<String, Object> cliente = customerClient.getCustomerById(UUID.fromString(visita.getCustomerId()));
@@ -287,8 +283,23 @@ public class VisitasController {
             visita.setTechnicianName("Sin técnico");
         }
 
+        boolean esTecnico = current.isLoggedIn() && Objects.equals(current.getRole(), "TECNICO");
+        model.addAttribute("sinTecnicosGestion", false);
+        if (Objects.equals(user.getRole(), "SUPERVISOR")) {
+            Map<String, String> allowedTechnicians = technicianIdsForSupervisor(user);
+            if (!allowedTechnicians.containsKey(normalizeId(visita.getTechnicianId()))) {
+                return "error/403";
+            }
+        }
+
+        if (!esTecnico && (Objects.equals(user.getRole(), "SUPERVISOR") || Objects.equals(user.getRole(), "ADMIN"))) {
+            List<Map<String, Object>> tecnicosDisponibles = techniciansAvailableFor(user);
+            model.addAttribute("tecnicosDisponibles", tecnicosDisponibles);
+            model.addAttribute("sinTecnicosGestion", tecnicosDisponibles == null || tecnicosDisponibles.isEmpty());
+        }
+
         model.addAttribute("visita", visita);
-        model.addAttribute("esTecnico", current.isLoggedIn() && Objects.equals(current.getRole(), "TECNICO"));
+        model.addAttribute("esTecnico", esTecnico);
         return "visits/ver"; // <-- este es el HTML que debes crear
     }
 
@@ -471,12 +482,67 @@ public class VisitasController {
             @PathVariable String id,
             @RequestParam String estado,
             @RequestParam String proposito,
-            @RequestParam String notas
+            @RequestParam String notas,
+            @RequestParam(required = false) String prioridad,
+            @RequestParam(required = false) String fechaProgramada,
+            @RequestParam(required = false) String tecnicoId
     ) {
+        UserDto user = current.get();
+        if (user == null) {
+            return "redirect:/login";
+        }
+
+        VisitDto visita = restTemplate.getForObject(visitsSvcUrl + "/visits/" + id, VisitDto.class);
+        LocalDateTime start = visita != null ? visita.getScheduledStartAt() : null;
+        LocalDateTime end = visita != null ? visita.getScheduledEndAt() : null;
+
+        if (fechaProgramada != null && !fechaProgramada.isBlank()) {
+            try {
+                LocalDate nuevaFecha = LocalDate.parse(fechaProgramada);
+                LocalTime horaActual = start != null ? start.toLocalTime() : LocalTime.of(0, 0);
+                start = LocalDateTime.of(nuevaFecha, horaActual);
+                if (end != null && visita != null && visita.getScheduledStartAt() != null && visita.getScheduledEndAt() != null) {
+                    Duration duracion = Duration.between(visita.getScheduledStartAt(), visita.getScheduledEndAt());
+                    end = start.plus(duracion);
+                } else if (end != null) {
+                    end = start.plusHours(2);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        String prioridadFinal = prioridad != null && !prioridad.isBlank()
+                ? prioridad
+                : visita != null ? visita.getPriority() : null;
+
+        String tecnicoFinal = tecnicoId != null && !tecnicoId.isBlank()
+                ? tecnicoId
+                : visita != null ? visita.getTechnicianId() : null;
+
+        if (Objects.equals(user.getRole(), "SUPERVISOR")) {
+            Map<String, String> allowed = technicianIdsForSupervisor(user);
+            if (tecnicoFinal != null && !allowed.containsKey(normalizeId(tecnicoFinal))) {
+                tecnicoFinal = visita != null ? visita.getTechnicianId() : null;
+            }
+        }
+
         Map<String, Object> body = new HashMap<>();
         body.put("state", estado);
         body.put("purpose", proposito);
         body.put("notesPlanned", notas);
+        if (prioridadFinal != null && !prioridadFinal.isBlank()) {
+            body.put("priority", prioridadFinal);
+        }
+        if (tecnicoFinal != null && !tecnicoFinal.isBlank()) {
+            body.put("technicianId", tecnicoFinal);
+        }
+        ZoneOffset offset = ZoneOffset.of("-06:00");
+        if (start != null) {
+            body.put("scheduledStartAt", start.atOffset(offset).toString());
+        }
+        if (end != null) {
+            body.put("scheduledEndAt", end.atOffset(offset).toString());
+        }
 
         String url = visitsSvcUrl + "/visits/" + id;
         restTemplate.patchForObject(url, body, Void.class);
