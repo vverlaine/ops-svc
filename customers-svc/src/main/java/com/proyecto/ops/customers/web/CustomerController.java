@@ -32,6 +32,16 @@ public class CustomerController {
         this.repo = repo;
     }
 
+    /**
+     * Construye una estructura de paginación compatible con los contratos del portal
+     * a partir de una lista de clientes y la metadata de paginado.
+     *
+     * @param content Lista de clientes a incluir en la página.
+     * @param page Número de página solicitada (base 0).
+     * @param size Tamaño de página solicitado.
+     * @param total Total de elementos existentes en la consulta.
+     * @return Mapa con la estructura `content`, `pageable` y métricas de paginado.
+     */
     private Map<String, Object> toPage(List<CustomerBasic> content, int page, int size, long total) {
         int safeSize = Math.max(size, 1);
         int totalPages = (int) Math.ceil((double) total / safeSize);
@@ -59,6 +69,13 @@ public class CustomerController {
         return out;
     }
 
+    /**
+     * Obtiene la lista paginada de clientes registrados.
+     *
+     * @param page Número de página (base 0).
+     * @param size Cantidad de elementos por página.
+     * @return Respuesta HTTP con la estructura paginada de clientes.
+     */
     @GetMapping
     public ResponseEntity<?> list(
             @RequestParam(defaultValue = "0") int page,
@@ -69,6 +86,15 @@ public class CustomerController {
         return ResponseEntity.ok(toPage(data, page, size, total));
     }
 
+    /**
+     * Realiza una búsqueda paginada de clientes utilizando coincidencia flexible
+     * sobre nombre, email o identificadores fiscales.
+     *
+     * @param q    Texto libre a buscar.
+     * @param page Número de página (base 0).
+     * @param size Cantidad de resultados por página.
+     * @return Respuesta HTTP con la página de resultados coincidentes.
+     */
     @GetMapping("/search")
     public ResponseEntity<?> search(
             @RequestParam String q,
@@ -80,6 +106,12 @@ public class CustomerController {
         return ResponseEntity.ok(toPage(data, page, size, total));
     }
 
+    /**
+     * Crea un nuevo registro de cliente a partir de la petición validada.
+     *
+     * @param req Datos del cliente a persistir.
+     * @return Cliente recién creado con su identificador asignado.
+     */
     @PostMapping
     public ResponseEntity<?> create(
             @Valid @RequestBody CreateCustomerRequest req
@@ -94,6 +126,14 @@ public class CustomerController {
         return ResponseEntity.ok(saved);
     }
 
+    /**
+     * Actualiza parcialmente un cliente existente. Solo se modifican los campos
+     * no nulos presentes en la petición.
+     *
+     * @param id  Identificador del cliente a actualizar.
+     * @param req Datos a modificar.
+     * @return Respuesta 200 con el cliente actualizado o 404 si no existe.
+     */
     @PatchMapping("/{id}")
     public ResponseEntity<?> update(
             @PathVariable UUID id,
@@ -111,6 +151,12 @@ public class CustomerController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Elimina un cliente por su identificador.
+     *
+     * @param id Identificador del cliente.
+     * @return 204 si se elimina, 404 si el recurso no existe.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(
             @PathVariable UUID id
@@ -120,6 +166,12 @@ public class CustomerController {
                 : ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
 
+    /**
+     * Recupera un cliente específico por su identificador.
+     *
+     * @param id Identificador del cliente.
+     * @return El cliente encontrado o 404 si no existe.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<CustomerBasic> getById(@PathVariable UUID id) {
         return repo.findById(id)

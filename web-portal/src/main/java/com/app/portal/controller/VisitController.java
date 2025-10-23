@@ -10,6 +10,10 @@ import com.app.portal.client.VisitClient;
 import com.app.portal.dto.VisitDto;
 import com.app.portal.session.CurrentUser;
 
+/**
+ * Controlador que ofrece vistas complementarias relacionadas con visitas,
+ * independiente del listado principal.
+ */
 @Controller
 public class VisitController {
 
@@ -21,6 +25,9 @@ public class VisitController {
         this.currentUser = currentUser;
     }
 
+    /**
+     * Muestra la vista con las visitas programadas para el día del usuario autenticado.
+     */
     @GetMapping("/visits/today")
     public String todayVisits(Model model) {
         if (!currentUser.isLoggedIn()) {

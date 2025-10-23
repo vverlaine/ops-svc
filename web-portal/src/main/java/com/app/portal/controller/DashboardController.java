@@ -6,6 +6,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import com.app.portal.dto.UserDto;
 
+/**
+ * Controlador encargado de renderizar el tablero principal del portal.
+ */
 @Controller
 public class DashboardController {
 
@@ -15,6 +18,9 @@ public class DashboardController {
         this.current = current;
     }
 
+    /**
+     * Carga la vista de dashboard con la información del usuario autenticado.
+     */
     @GetMapping("/dashboard")
     public String dashboard(Model model) {
         UserDto user = current.get();

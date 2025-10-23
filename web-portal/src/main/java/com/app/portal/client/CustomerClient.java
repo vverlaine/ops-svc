@@ -12,6 +12,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Cliente REST que encapsula las llamadas al microservicio de clientes desde el portal.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -22,6 +25,9 @@ public class CustomerClient {
     @Value("${customers.url}")
     private String customersSvcUrl;
 
+    /**
+     * Obtiene la lista de clientes paginada desde el servicio remoto y extrae el contenido.
+     */
     public List<Map<String, Object>> listCustomers() {
         Map<String, Object> response = restTemplate.getForObject(customersSvcUrl + "/customers", Map.class);
         if (response == null) return List.of();
@@ -32,6 +38,9 @@ public class CustomerClient {
         return List.of();
     }
 
+    /**
+     * Envía la solicitud de creación de cliente y captura posibles errores.
+     */
     public boolean createCustomer(CustomerForm form) {
         try {
             restTemplate.postForEntity(customersSvcUrl + "/customers", form, Void.class);
@@ -42,6 +51,9 @@ public class CustomerClient {
         }
     }
 
+    /**
+     * Realiza una actualización parcial de cliente solo con los campos presentes en el formulario.
+     */
     public boolean updateCustomer(UUID id, CustomerForm form) {
         try {
             Map<String, Object> payload = new HashMap<>();
@@ -59,12 +71,18 @@ public class CustomerClient {
         }
     }
 
+    /**
+     * Elimina un cliente remoto por su identificador.
+     */
     public boolean deleteCustomer(UUID id) {
         String url = customersSvcUrl + "/customers/" + id;
         restTemplate.delete(url);
         return true;
     }
 
+    /**
+     * Recupera un cliente específico; retorna mapa vacío cuando no se encuentra o se produce un error.
+     */
     public Map<String, Object> getCustomerById(UUID id) {
         try {
             String url = customersSvcUrl + "/customers/" + id;

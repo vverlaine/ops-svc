@@ -12,6 +12,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Cliente HTTP ligero para interactuar con el microservicio de visitas desde el portal.
+ */
 @Component
 public class VisitClient {
 
@@ -24,7 +27,9 @@ public class VisitClient {
         this.restTemplate = restTemplate;
     }
 
-    // Para administradores — lista general
+    /**
+     * Recupera todas las visitas (uso administrativo).
+     */
     public List<VisitDto> list() {
         var url = baseUrl + "/visits";
         ResponseEntity<List<VisitDto>> response = restTemplate.exchange(
@@ -37,7 +42,9 @@ public class VisitClient {
         return response.getBody();
     }
 
-    // Para técnicos — solo sus visitas de hoy (por email)
+    /**
+     * Obtiene las visitas asignadas al técnico autenticado para el día actual.
+     */
     public List<VisitDto> myVisitsToday(UUID technicianId) {
         var url = baseUrl + "/visits/me/today?technicianId=" + technicianId;
         VisitDto[] response = restTemplate.getForObject(url, VisitDto[].class);

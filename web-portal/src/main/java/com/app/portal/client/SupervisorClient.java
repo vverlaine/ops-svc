@@ -19,6 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Cliente REST para consultar supervisores desde el portal con mecanismos de fallback a auth-svc.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -35,6 +38,10 @@ public class SupervisorClient {
     @Value("${supervisors.token:}")
     private String supervisorsSvcToken;
 
+    /**
+     * Recupera la lista de supervisores desde el servicio dedicado, utilizando token si fue configurado.
+     * Aplica un fallback a auth-svc cuando el servicio principal no está disponible.
+     */
     @SuppressWarnings("unchecked")
     public List<SupervisorOption> listSupervisors() {
         try {
@@ -78,6 +85,9 @@ public class SupervisorClient {
         }
     }
 
+    /**
+     * Obtiene supervisores desde auth-svc cuando el servicio especializado no responde.
+     */
     private List<SupervisorOption> fallbackFromAuth() {
         try {
             return authClient.listUsers().stream()
@@ -101,6 +111,9 @@ public class SupervisorClient {
         }
     }
 
+    /**
+     * Construye la entidad HTTP con encabezados de autenticación opcionales para supervisors-svc.
+     */
     private HttpEntity<Void> authEntity() {
         HttpHeaders headers = new HttpHeaders();
         if (supervisorsSvcToken != null && !supervisorsSvcToken.isBlank()) {

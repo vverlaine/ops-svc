@@ -15,6 +15,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Cliente REST que consume technicians-svc y provee utilidades de respaldo usando auth-svc.
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -26,6 +29,10 @@ public class TechnicianClient {
     @Value("${technicians.url}")
     private String techniciansSvcUrl;
 
+    /**
+     * Lista los técnicos disponibles consultando el servicio dedicado y, si falla,
+     * recurriendo a la información del servicio de autenticación.
+     */
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> listTechnicians() {
         try {
@@ -46,6 +53,9 @@ public class TechnicianClient {
         }
     }
 
+    /**
+     * Obtiene un técnico por su identificador con fallback a auth-svc cuando el servicio principal no responde.
+     */
     @SuppressWarnings("unchecked")
     public Map<String, Object> getTechnicianById(UUID id) {
         try {
@@ -59,6 +69,9 @@ public class TechnicianClient {
         }
     }
 
+    /**
+     * Lista técnicos filtrados por el supervisor responsable, respetando asignaciones directas o por equipo.
+     */
     public List<Map<String, Object>> listTechniciansForSupervisor(UUID supervisorId) {
         if (supervisorId == null) {
             return listTechnicians();
@@ -101,6 +114,9 @@ public class TechnicianClient {
         return filtered;
     }
 
+    /**
+     * Recupera técnicos a partir de auth-svc como mecanismo de contingencia cuando el servicio principal falla.
+     */
     private List<Map<String, Object>> fallbackFromAuth() {
         try {
             List<Map<String, Object>> users = authClient.listUsers();
@@ -126,6 +142,9 @@ public class TechnicianClient {
         }
     }
 
+    /**
+     * Construye un mapa auxiliar que relaciona técnicos con sus supervisores o equipos a partir de auth-svc.
+     */
     private Map<String, String> buildSupervisorAssignments() {
         Map<String, String> assignments = new HashMap<>();
         try {
@@ -159,6 +178,9 @@ public class TechnicianClient {
         return assignments;
     }
 
+    /**
+     * Extrae el identificador de supervisor o equipo desde múltiples claves posibles en el payload del servicio.
+     */
     private String extractSupervisorId(Map<String, Object> tech) {
         Object[] candidates = {
                 tech.get("supervisorId"),
@@ -174,6 +196,9 @@ public class TechnicianClient {
         return null;
     }
 
+    /**
+     * Obtiene el identificador principal del técnico considerando distintas variantes de claves.
+     */
     private String extractUserId(Map<String, Object> tech) {
         Object[] candidates = {
                 tech.get("userId"),
@@ -194,6 +219,9 @@ public class TechnicianClient {
         return null;
     }
 
+    /**
+     * Normaliza un identificador textual para facilitar las comparaciones.
+     */
     private String normalize(String value) {
         if (value == null) {
             return null;
@@ -201,6 +229,9 @@ public class TechnicianClient {
         return value.trim().toLowerCase();
     }
 
+    /**
+     * Copia un campo específico desde el mapa origen al destino cuando existe un valor no nulo.
+     */
     private void copyIfPresent(Map<String, Object> target, Map<String, Object> source, String key) {
         Object value = source.get(key);
         if (value != null) {
@@ -208,6 +239,9 @@ public class TechnicianClient {
         }
     }
 
+    /**
+     * Retorna el primer objeto no nulo dentro de la secuencia recibida.
+     */
     private Object firstNonNull(Object... values) {
         for (Object value : values) {
             if (value != null) {

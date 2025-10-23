@@ -16,6 +16,9 @@ import org.springframework.web.client.RestTemplate;
 
 import com.app.portal.dto.UserDto;
 
+/**
+ * Cliente de autenticación que encapsula las llamadas al microservicio auth-svc desde el portal.
+ */
 @Service
 public class AuthClient {
 
@@ -27,6 +30,9 @@ public class AuthClient {
 
     final RestTemplate rest = new RestTemplate();
 
+    /**
+     * Autentica al usuario contra auth-svc y devuelve el DTO recibido.
+     */
     public UserDto login(String email, String password) {
         String url = baseUrl + "/auth/login";
         var req = Map.of("email", email, "password", password);
@@ -44,6 +50,9 @@ public class AuthClient {
         }
     }
 
+    /**
+     * Registra un nuevo usuario en auth-svc y captura cualquier mensaje de error.
+     */
     public boolean createUser(CreateUserForm form, StringBuilder err) {
         String url = baseUrl + "/auth/register";
         try {
@@ -66,12 +75,18 @@ public class AuthClient {
         }
     }
 
+    /**
+     * Recupera el catálogo de usuarios completo desde auth-svc.
+     */
     public List<Map<String, Object>> listUsers() {
         String url = baseUrl + "/auth/users";
         ResponseEntity<List> res = rest.exchange(url, HttpMethod.GET, null, List.class);
         return res.getBody();
     }
 
+    /**
+     * Elimina un usuario en auth-svc por su identificador.
+     */
     public boolean deleteUser(String userId, StringBuilder err) {
         try {
             rest.delete(baseUrl + "/auth/users/" + userId);
@@ -82,6 +97,9 @@ public class AuthClient {
         }
     }
 
+    /**
+     * Cambia el rol de un usuario y notifica cualquier error al solicitante.
+     */
     public boolean changeUserRole(String userId, String role, StringBuilder err) {
         try {
             rest.put(baseUrl + "/auth/users/" + userId + "/role?role=" + role, null);
@@ -95,6 +113,9 @@ public class AuthClient {
         }
     }
 
+    /**
+     * Actualiza el supervisor asignado a un técnico en auth-svc.
+     */
     public boolean changeTechnicianSupervisor(String userId, String supervisorId, StringBuilder err) {
         try {
             String url = baseUrl + "/auth/users/" + userId + "/supervisor";

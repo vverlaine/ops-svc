@@ -28,6 +28,10 @@ import com.proyecto.ops.technicians.security.CurrentUser;
 
 import jakarta.validation.Valid;
 
+/**
+ * Controlador REST para gestionar técnicos: altas, consultas, edición de habilidades
+ * y eliminación lógica.
+ */
 @RestController
 @RequestMapping("/technicians")
 public class TechnicianController {
@@ -41,6 +45,14 @@ public class TechnicianController {
     }
 
     // ---------- Read ----------
+    /**
+     * Lista técnicos aplicando filtros opcionales por estado activo y habilidades.
+     *
+     * @param active Filtra por técnicos activos/inactivos.
+     * @param skill  Filtra por habilidad contenida en la colección del técnico.
+     * @param pageable Parámetros de paginación.
+     * @return Página de técnicos transformada al DTO de respuesta.
+     */
     @GetMapping
     public Page<TechnicianResponse> list(
             @RequestParam(required = false) Boolean active,
@@ -49,6 +61,12 @@ public class TechnicianController {
         return repo.search(active, skill, pageable).map(this::toResponse);
     }
 
+    /**
+     * Recupera un técnico específico por su identificador.
+     *
+     * @param id Identificador UUID del técnico.
+     * @return 200 con el técnico o 404 si no existe.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<TechnicianResponse> get(@PathVariable UUID id) {
         return repo.findById(id)
@@ -57,6 +75,14 @@ public class TechnicianController {
     }
 
     // ---------- Create ----------
+    /**
+     * Registra un nuevo técnico asociado al usuario autenticado que realiza la solicitud.
+     * Evita crear duplicados si el usuario ya tiene técnico asignado.
+     *
+     * @param req Datos de creación (estado y habilidades).
+     * @param me  Usuario autenticado inyectado mediante el resolver personalizado.
+     * @return Técnico creado o conflicto si ya existía.
+     */
     @PostMapping
     public ResponseEntity<TechnicianResponse> create(
             @Valid @RequestBody CreateTechnicianRequest req,
@@ -91,6 +117,13 @@ public class TechnicianController {
     }
 
     // ---------- Update ----------
+    /**
+     * Actualiza campos parciales de un técnico existente, como estado y habilidades.
+     *
+     * @param id  Identificador del técnico.
+     * @param req Datos a actualizar.
+     * @return Técnico actualizado o 404 si no existe.
+     */
     @PatchMapping("/{id}")
     public ResponseEntity<TechnicianResponse> update(
             @PathVariable UUID id,
@@ -111,6 +144,12 @@ public class TechnicianController {
     }
 
     // ---------- Delete ----------
+    /**
+     * Elimina (hard-delete) un técnico existente.
+     *
+     * @param id Identificador del técnico.
+     * @return 204 si se elimina; 404 si no existe.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
         return repo.findById(id).map(t -> {
@@ -120,6 +159,13 @@ public class TechnicianController {
     }
 
     // ---------- Manage skills ----------
+    /**
+     * Agrega una habilidad al técnico evitando duplicados y preservando el orden de inserción.
+     *
+     * @param id  Identificador del técnico.
+     * @param req Cuerpo con la habilidad a agregar.
+     * @return Representación del técnico tras la modificación.
+     */
     @PatchMapping("/{id}/skills/add")
     public TechnicianResponse addSkill(@PathVariable UUID id, @RequestBody SkillReq req) {
         Technician t = repo.findById(id)
@@ -138,6 +184,13 @@ public class TechnicianController {
         return toResponse(saved);
     }
 
+    /**
+     * Elimina una habilidad específica del técnico si está presente.
+     *
+     * @param id  Identificador del técnico.
+     * @param req Cuerpo con la habilidad a eliminar.
+     * @return Representación del técnico tras la modificación.
+     */
     @PatchMapping("/{id}/skills/remove")
     public TechnicianResponse removeSkill(@PathVariable UUID id, @RequestBody SkillReq req) {
         Technician t = repo.findById(id)
@@ -158,6 +211,10 @@ public class TechnicianController {
     public static record SkillReq(String skill) { }
 
     // ---------- Mapper ----------
+    /**
+     * Convierte la entidad Technician en el DTO expuesto al exterior, enriqueciendo el
+     * nombre si no está almacenado en la entidad.
+     */
     private TechnicianResponse toResponse(Technician t) {
         String userName = (t.getUserName() != null && !t.getUserName().isBlank())
                 ? t.getUserName()

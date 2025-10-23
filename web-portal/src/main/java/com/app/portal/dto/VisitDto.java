@@ -2,6 +2,9 @@ package com.app.portal.dto;
 
 import java.time.LocalDateTime;
 
+/**
+ * DTO utilizado por el portal para presentar información consolidada de una visita.
+ */
 public class VisitDto {
 
     private String id;
@@ -61,6 +64,9 @@ public class VisitDto {
         this.customerAddress = customerAddress;
     }
 
+    /**
+     * URL preconstruida para abrir la ubicación del cliente en Google Maps.
+     */
     public String getCustomerMapsUrl() {
         return customerMapsUrl;
     }

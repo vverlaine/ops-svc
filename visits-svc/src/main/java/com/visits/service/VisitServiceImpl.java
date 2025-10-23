@@ -30,6 +30,9 @@ public class VisitServiceImpl implements VisitService {
     private final VisitNoteRepository noteRepository;
     private final VisitEmailService visitEmailService;
 
+    /**
+     * Crea la implementación del servicio de visitas con sus repositorios y adaptadores necesarios.
+     */
     public VisitServiceImpl(VisitRepository visitRepository,
             VisitEventRepository eventRepository,
             VisitNoteRepository noteRepository,
@@ -40,6 +43,9 @@ public class VisitServiceImpl implements VisitService {
         this.visitEmailService = visitEmailService;
     }
 
+    /**
+     * Registra una visita en estado planificado y produce el evento inicial.
+     */
     @Override
     public Visit createPlanned(UUID customerId, UUID siteId, UUID technicianId,
             OffsetDateTime start, OffsetDateTime end,
@@ -54,6 +60,10 @@ public class VisitServiceImpl implements VisitService {
         return v;
     }
 
+    /**
+     * Permite editar los metadatos de una visita todavía planificada, validando
+     * coherencia de fechas y generando un evento de actualización.
+     */
     @Override
     public Visit updatePlanned(UUID visitId, OffsetDateTime start, OffsetDateTime end,
             UUID technicianId, VisitPriority priority, String purpose, String notesPlanned, VisitState state) {
@@ -92,6 +102,10 @@ public class VisitServiceImpl implements VisitService {
         return saved;
     }
 
+    /**
+     * Marca la visita como iniciada a partir del momento indicado y registra
+     * el evento de check-in.
+     */
     @Override
     public Visit checkIn(UUID visitId, UUID actorId, OffsetDateTime when, Double lat, Double lng) {
         Visit v = visitRepository.findById(visitId)
@@ -104,6 +118,10 @@ public class VisitServiceImpl implements VisitService {
         return saved;
     }
 
+    /**
+     * Completa la visita, registra el check-out con los datos de ubicación y
+     * dispara la notificación por correo.
+     */
     @Override
     public Visit checkOut(UUID visitId, UUID actorId, OffsetDateTime when, Double lat, Double lng, String workSummary) {
         Visit v = visitRepository.findById(visitId)
@@ -122,6 +140,9 @@ public class VisitServiceImpl implements VisitService {
         return saved;
     }
 
+    /**
+     * Cambia el estado de la visita a cancelada y crea el evento correspondiente.
+     */
     @Override
     public void cancel(UUID visitId, UUID actorId) {
         Visit v = visitRepository.findById(visitId)
@@ -132,6 +153,10 @@ public class VisitServiceImpl implements VisitService {
         eventRepository.save(VisitEvent.of(v.getId(), "VisitCancelled", actorId, null, null, null));
     }
 
+    /**
+     * Devuelve visitas filtradas por estado, técnico y rango temporal según los
+     * parámetros disponibles. Si no hay filtros, retorna todas las visitas paginadas.
+     */
     @Override
     @Transactional(readOnly = true)
     public Page<Visit> list(UUID customerId, UUID technicianId, VisitState state,
@@ -147,6 +172,10 @@ public class VisitServiceImpl implements VisitService {
         return visitRepository.findAll(pageable);
     }
 
+    /**
+     * Recupera las visitas asignadas a un técnico para la fecha indicada,
+     * utilizando el rango horario completo del día.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<Visit> myVisitsToday(UUID technicianId, LocalDate today) {
@@ -159,12 +188,19 @@ public class VisitServiceImpl implements VisitService {
                 .getContent();
     }
 
+    /**
+     * Devuelve el historial de eventos asociados a una visita en orden cronológico.
+     */
     @Override
     @Transactional(readOnly = true)
     public List<VisitEvent> events(UUID visitId) {
         return eventRepository.findByVisitIdOrderByCreatedAtAsc(visitId);
     }
 
+    /**
+     * Persiste una nota para la visita y retorna la colección completa ordenada
+     * por fecha de creación.
+     */
     @Override
     public List<VisitNote> addNote(UUID visitId, UUID authorId, NoteVisibility visibility, String body) {
         Visit v = visitRepository.findById(visitId)
@@ -180,6 +216,9 @@ public class VisitServiceImpl implements VisitService {
         return noteRepository.findByVisitIdOrderByCreatedAtAsc(visitId);
     }
 
+    /**
+     * Busca una visita por su identificador, generando una excepción si no existe.
+     */
     @Override
     public Visit getById(UUID visitId) {
         return visitRepository.findById(visitId)

@@ -16,6 +16,9 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador web dedicado a la administración de usuarios desde el portal.
+ */
 @Controller
 public class AdminController {
 
@@ -30,6 +33,9 @@ public class AdminController {
         this.current = current;
     }
 
+    /**
+     * Renderiza el listado de usuarios junto con información relacionada con supervisores.
+     */
     @GetMapping("/admin/users")
     public String listarUsuarios(Model model) {
         List<Map<String, Object>> rawUsers = auth.listUsers();
@@ -74,13 +80,19 @@ public class AdminController {
         return "/admin/users";
     }
 
+    /**
+     * Muestra el formulario de creación de usuario.
+     */
     @GetMapping("/admin/crear")
     public String showCreateUserForm(Model model) {
         model.addAttribute("form", new CreateUserForm("", "", "", "", ""));
         model.addAttribute("supervisores", supervisorClient.listSupervisors());
-        return "admin/users-new"; // tu template HTML Thymeleaf
+        return "admin/users-new";
     }
 
+    /**
+     * Procesa el envío del formulario de creación de usuario y maneja errores de validación del servicio remoto.
+     */
     @PostMapping("/admin/crear")
     public String createUser(
             @ModelAttribute("form") CreateUserForm form,
@@ -98,6 +110,9 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    /**
+     * Actualiza la relación supervisor-técnico de un usuario.
+     */
     @PostMapping("/admin/tecnico/supervisor")
     public String changeTechnicianSupervisor(
             @RequestParam String userId,
@@ -111,6 +126,9 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    /**
+     * Elimina un usuario del sistema administrativo.
+     */
     @PostMapping("admin/eliminar")
     public String deleteUser(@RequestParam String userId, Model model) {
         var err = new StringBuilder();
@@ -123,6 +141,9 @@ public class AdminController {
         return "redirect:/admin/users";
     }
 
+    /**
+     * Cambia el rol de un usuario existente en el sistema.
+     */
     @PostMapping("admin/rol")
     public String changeRole(@RequestParam String userId,
             @RequestParam String role,

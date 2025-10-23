@@ -15,6 +15,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * Controlador REST para consultar y actualizar información de supervisores.
+ */
 @RestController
 @RequestMapping("/supervisors")
 public class SupervisorController {
@@ -27,6 +30,14 @@ public class SupervisorController {
         this.usersClient = usersClient;
     }
 
+    /**
+     * Lista supervisores con filtros opcionales por estado y equipo.
+     *
+     * @param active Filtra por supervisores activos/inactivos.
+     * @param teamId Identificador de equipo para filtrar.
+     * @param pageable Parámetros de paginación.
+     * @return Página de supervisores.
+     */
     @GetMapping
     public Page<SupervisorResponse> list(
             @RequestParam(required = false) Boolean active,
@@ -35,6 +46,12 @@ public class SupervisorController {
         return repo.search(active, teamId, pageable).map(this::toResponse);
     }
 
+    /**
+     * Recupera un supervisor por su identificador.
+     *
+     * @param id Identificador UUID.
+     * @return Supervisor encontrado o 404 si no existe.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<SupervisorResponse> get(@PathVariable UUID id) {
         return repo.findById(id)
@@ -42,6 +59,13 @@ public class SupervisorController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Actualiza parcialmente los atributos de un supervisor (estado y equipo).
+     *
+     * @param id  Identificador del supervisor.
+     * @param req Datos a actualizar.
+     * @return Supervisor actualizado o 404 si no existe.
+     */
     @PatchMapping("/{id}")
     public ResponseEntity<SupervisorResponse> update(
             @PathVariable UUID id,
@@ -59,6 +83,10 @@ public class SupervisorController {
         }).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Convierte la entidad Supervisor en el DTO de respuesta, completando el nombre
+     * desde el servicio de usuarios cuando sea necesario.
+     */
     private SupervisorResponse toResponse(Supervisor s) {
         String name = (s.getUserName() != null && !s.getUserName().isBlank())
                 ? s.getUserName()

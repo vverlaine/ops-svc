@@ -10,6 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+/**
+ * Controlador encargado del flujo de autenticación en el portal (login/logout).
+ */
 @Controller
 @Validated
 public class AuthController {
@@ -24,6 +27,9 @@ public class AuthController {
         this.current = current;
     }
 
+    /**
+     * Muestra el formulario de inicio de sesión y prepara el modelo si es necesario.
+     */
     @GetMapping("/login")
     public String loginPage(Model model) {
         if (!model.containsAttribute("loginForm")) {
@@ -32,6 +38,9 @@ public class AuthController {
         return "login";
     }
 
+    /**
+     * Procesa el intento de inicio de sesión contra el servicio remoto y maneja mensajes flash.
+     */
     @PostMapping("/login")
     public String doLogin(@ModelAttribute("loginForm") LoginForm form, RedirectAttributes ra) {
         var user = auth.login(form.email(), form.password());
@@ -45,6 +54,9 @@ public class AuthController {
         return "redirect:/dashboard";
     }
 
+    /**
+     * Cierra la sesión activa del usuario y redirige al formulario de login.
+     */
     @PostMapping("/logout")
     public String logout(RedirectAttributes ra) {
         current.clear();

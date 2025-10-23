@@ -121,6 +121,13 @@ public class AuthFilter extends OncePerRequestFilter {
     res.getWriter().write("{\"error\":\"Unauthorized\"}");
   }
 
+    /**
+     * Determina si la solicitud puede pasar sin autenticación en función de la ruta y el método HTTP.
+     *
+     * @param path   Ruta solicitada.
+     * @param method Método HTTP (GET, POST, etc.).
+     * @return true si la ruta forma parte de las excepciones públicas.
+     */
   private boolean isPublic(String path, String method) {
     if (PUBLIC.contains(path)) {
       return true;

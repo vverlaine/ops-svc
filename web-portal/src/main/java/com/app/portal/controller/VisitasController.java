@@ -40,6 +40,10 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Controlador central del portal para gestionar la experiencia web relacionada
+ * con visitas técnicas (listados, detalle, creación y actualización).
+ */
 @Controller
 @RequiredArgsConstructor
 public class VisitasController {
@@ -54,6 +58,10 @@ public class VisitasController {
     @Value("${visits.url}")
     private String visitsSvcUrl;
 
+    /**
+     * Presenta el listado principal de visitas aplicando filtros por estado y prioridad,
+     * adaptando la consulta según el rol del usuario autenticado.
+     */
     @GetMapping("/visitas")
     public String listarVisitas(
             @RequestParam(required = false) String estado,
@@ -184,6 +192,9 @@ public class VisitasController {
         return "visitas";
     }
 
+    /**
+     * Muestra el formulario para planificar una nueva visita y precarga los catálogos necesarios.
+     */
     @GetMapping("/visits/crear")
     public String mostrarFormularioCreacion(Model model) {
         UserDto user = current.get();
@@ -200,6 +211,10 @@ public class VisitasController {
         return "visits/crear";
     }
 
+    /**
+     * Envía la solicitud al servicio de visitas para crear una nueva visita con las
+     * fechas y asignaciones seleccionadas en el portal.
+     */
     @PostMapping("/visits/crear")
     public String procesarFormularioCreacion(
             @ModelAttribute("visita") CrearVisitaForm form,
@@ -252,6 +267,9 @@ public class VisitasController {
         return "redirect:/visitas";
     }
 
+    /**
+     * Recupera la información detallada de una visita específica para mostrarla en la vista de detalle.
+     */
     @GetMapping("/visitas/{id}")
     public String verVisita(@PathVariable String id, Model model) {
         UserDto user = current.get();
@@ -304,9 +322,12 @@ public class VisitasController {
 
         model.addAttribute("visita", visita);
         model.addAttribute("esTecnico", esTecnico);
-        return "visits/ver"; // <-- este es el HTML que debes crear
+        return "visits/ver";
     }
 
+    /**
+     * Genera un enlace directo a Google Maps con indicaciones hacia la dirección del cliente.
+     */
     private String buildGoogleMapsUrl(String address) {
         if (address == null) {
             return null;
@@ -319,6 +340,10 @@ public class VisitasController {
         return "https://www.google.com/maps/dir/?api=1&destination=" + encoded;
     }
 
+    /**
+     * Obtiene el listado de técnicos disponibles para el usuario actual aplicando
+     * restricciones de equipo cuando se trata de un supervisor.
+     */
     private List<Map<String, Object>> techniciansAvailableFor(UserDto user) {
         if (user == null) {
             return technicianClient.listTechnicians();
@@ -344,6 +369,10 @@ public class VisitasController {
         return technicianClient.listTechnicians();
     }
 
+    /**
+     * Construye el mapa de técnicos que un supervisor puede gestionar a partir
+     * de su equipo, su rol y la información proveniente de auth-svc y technicians-svc.
+     */
     private Map<String, String> technicianIdsForSupervisor(UserDto supervisor) {
         if (supervisor == null || supervisor.getId() == null) {
             return Map.of();
@@ -436,6 +465,9 @@ public class VisitasController {
         return ids;
     }
 
+    /**
+     * Extrae el identificador del técnico desde diversos formatos que pueden devolver los servicios remotos.
+     */
     private String extractTechnicianId(Map<String, Object> technician) {
         if (technician == null) {
             return null;
@@ -459,6 +491,9 @@ public class VisitasController {
         return null;
     }
 
+    /**
+     * Intenta obtener el identificador del supervisor asociado desde diferentes claves posibles.
+     */
     private String extractSupervisorId(Map<String, Object> map) {
         if (map == null) {
             return null;
@@ -477,6 +512,9 @@ public class VisitasController {
         return null;
     }
 
+    /**
+     * Normaliza un identificador para comparaciones uniformes (trim + lowercase).
+     */
     private String normalizeId(String value) {
         if (value == null) {
             return null;
@@ -484,6 +522,9 @@ public class VisitasController {
         return value.trim().toLowerCase();
     }
 
+    /**
+     * Retorna el primer valor no nulo recibido como parámetro.
+     */
     private Object firstNonNull(Object... values) {
         for (Object value : values) {
             if (value != null) {
@@ -493,6 +534,9 @@ public class VisitasController {
         return null;
     }
 
+    /**
+     * Actualiza datos de una visita (estado, prioridad, fechas, notas) y envía la petición PATCH al servicio.
+     */
     @PostMapping("/visits/{id}/update")
     public String actualizarVisita(
             @PathVariable String id,
@@ -566,6 +610,9 @@ public class VisitasController {
         return "redirect:/visitas";
     }
 
+    /**
+     * Ejecuta el flujo de check-in del técnico autenticado sobre la visita indicada.
+     */
     @GetMapping("/visitas/{id}/checkin")
     public String checkIn(@PathVariable String id) {
         UserDto user = current.get();
@@ -580,6 +627,9 @@ public class VisitasController {
         return "redirect:/visitas";
     }
 
+    /**
+     * Ejecuta el flujo de check-out para marcar una visita como completada.
+     */
     @GetMapping("/visitas/{id}/complete")
     public String checkOut(@PathVariable String id) {
         UserDto user = current.get();
