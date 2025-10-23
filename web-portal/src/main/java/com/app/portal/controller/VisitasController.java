@@ -168,7 +168,11 @@ public class VisitasController {
 
         Map<String, Object> body = new HashMap<>();
         body.put("customerId", form.getCustomerId());
-        body.put("siteId", form.getSiteId());
+        String siteId = form.getSiteId();
+        if (siteId == null || siteId.isBlank()) {
+            siteId = form.getCustomerId();
+        }
+        body.put("siteId", siteId);
         body.put("technicianId", form.getTechnicianId());
         body.put("scheduledStartAt", start.toString());
         body.put("scheduledEndAt", end.toString());

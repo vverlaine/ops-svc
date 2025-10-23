@@ -44,7 +44,6 @@
                     <option value="LOW">Baja</option>
                     <option value="MEDIUM" selected>Media</option>
                     <option value="HIGH">Alta</option>
-                    <option value="URGENT">Urgente</option>
                 </select>
             </div>
 
@@ -67,7 +66,7 @@
             <div class="col-md-6 d-none">
                 <input type="hidden" id="scheduledStartAt" th:field="*{scheduledStartAt}" />
                 <input type="hidden" id="scheduledEndAt" th:field="*{scheduledEndAt}" />
-                <input type="hidden" th:field="*{siteId}" />
+                <input type="hidden" id="siteId" th:field="*{siteId}" />
             </div>
 
             <div class="col-12">
@@ -99,12 +98,16 @@
             const addressField = document.getElementById('customerAddress');
             const startHidden = document.getElementById('scheduledStartAt');
             const endHidden = document.getElementById('scheduledEndAt');
+            const siteHidden = document.getElementById('siteId');
             const dateField = document.getElementById('scheduledStartDate');
 
             function updateAddress() {
                 const option = select.options[select.selectedIndex];
                 const address = option ? option.getAttribute('data-address') : '';
                 addressField.value = address || '';
+                if (option && option.value) {
+                    siteHidden.value = option.value;
+                }
             }
 
             function syncDates() {
