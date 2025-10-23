@@ -1,6 +1,7 @@
 <!-- templates/fragments.html -->
 <div th:fragment="navbar">
-  <nav class="navbar navbar-expand-lg navbar-dark" style="background: #101827;"
+  <nav class="navbar navbar-expand-lg navbar-dark"
+       style="background: linear-gradient(135deg, #2563eb, #0ea5e9 65%, #38bdf8); border-bottom: 1px solid rgba(255,255,255,0.06); box-shadow: 0 10px 30px rgba(15, 118, 246, .22);"
        th:with="isDashboard=${currentUri == '/dashboard'},
                 role=${user != null ? user.role : ''}">
     <div class="container-fluid">
