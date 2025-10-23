@@ -38,6 +38,8 @@ public class SupervisorClient {
     @SuppressWarnings("unchecked")
     public List<SupervisorOption> listSupervisors() {
         try {
+            System.out.println("SupervisorClient → URL: " + supervisorsSvcUrl);
+            System.out.println("SupervisorClient → token present: " + (supervisorsSvcToken != null && !supervisorsSvcToken.isBlank()));
             ResponseEntity<Map> responseEntity = restTemplate.exchange(
                     supervisorsSvcUrl + "/supervisors?size=200",
                     HttpMethod.GET,
