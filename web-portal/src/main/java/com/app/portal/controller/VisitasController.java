@@ -173,4 +173,33 @@ public class VisitasController {
 
         return "redirect:/visitas";
     }
+
+    @GetMapping("/visitas/{id}/checkin")
+    public String checkIn(@PathVariable String id) {
+        UserDto user = current.get();
+        if (user == null) {
+            return "redirect:/login";
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("actorId", user.getId());
+        body.put("when", OffsetDateTime.now(ZoneOffset.UTC).toString());
+        String url = visitsSvcUrl + "/visits/" + id + "/check-in";
+        restTemplate.postForObject(url, body, VisitDto.class);
+        return "redirect:/visitas";
+    }
+
+    @GetMapping("/visitas/{id}/complete")
+    public String checkOut(@PathVariable String id) {
+        UserDto user = current.get();
+        if (user == null) {
+            return "redirect:/login";
+        }
+        Map<String, Object> body = new HashMap<>();
+        body.put("actorId", user.getId());
+        body.put("when", OffsetDateTime.now(ZoneOffset.UTC).toString());
+        body.put("workSummary", "");
+        String url = visitsSvcUrl + "/visits/" + id + "/check-out";
+        restTemplate.postForObject(url, body, VisitDto.class);
+        return "redirect:/visitas";
+    }
 }

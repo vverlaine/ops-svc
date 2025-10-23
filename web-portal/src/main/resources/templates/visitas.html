@@ -56,7 +56,7 @@
                     <td>
                         <a th:href="@{'/visitas/' + ${visita.id}}" class="btn btn-info btn-sm">Ver</a>
 
-                        <button th:if="${rol == 'TECNICO' and visita.state == 'SCHEDULED'}"
+                        <button th:if="${rol == 'TECNICO' and visita.state == 'PLANNED'}"
                             th:attr="onclick='location.href=\'/visitas/' + ${visita.id} + '/checkin\''"
                             class="btn btn-sm btn-success">Check-in</button>
 
