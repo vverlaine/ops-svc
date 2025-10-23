@@ -64,7 +64,7 @@ public class TechnicianClient {
             return listTechnicians();
         }
 
-        String supervisorKey = supervisorId.toString();
+        String supervisorKey = normalize(supervisorId.toString());
         List<Map<String, Object>> technicians = listTechnicians();
         if (technicians.isEmpty()) {
             return technicians;
@@ -77,8 +77,8 @@ public class TechnicianClient {
                 continue;
             }
 
-            String techId = extractId(tech);
-            if (techId == null) {
+            String technicianUserId = extractUserId(tech);
+            if (technicianUserId == null) {
                 continue;
             }
 
@@ -87,11 +87,14 @@ public class TechnicianClient {
                 if (supervisorAssignments == null) {
                     supervisorAssignments = buildSupervisorAssignments();
                 }
-                supervisorFromPayload = supervisorAssignments.get(techId);
+                supervisorFromPayload = supervisorAssignments.get(normalize(technicianUserId));
             }
 
-            if (supervisorFromPayload != null && supervisorKey.equalsIgnoreCase(supervisorFromPayload)) {
-                filtered.add(tech);
+            if (supervisorFromPayload != null && supervisorKey.equals(normalize(supervisorFromPayload))) {
+                Map<String, Object> enriched = new HashMap<>(tech);
+                enriched.put("userId", technicianUserId);
+                enriched.put("id", technicianUserId);
+                filtered.add(enriched);
             }
         }
 
@@ -109,14 +112,10 @@ public class TechnicianClient {
                     row.put("id", user.get("id"));
                     row.put("userName", user.getOrDefault("name", "Sin nombre"));
                     row.put("active", Boolean.TRUE);
-                    Object supervisorId = user.get("supervisorId");
-                    if (supervisorId != null) {
-                        row.put("supervisorId", supervisorId);
-                    }
-                    Object teamId = user.get("teamId");
-                    if (teamId != null) {
-                        row.put("teamId", teamId);
-                    }
+                    copyIfPresent(row, user, "supervisorId");
+                    copyIfPresent(row, user, "teamId");
+                    copyIfPresent(row, user, "supervisor_id");
+                    copyIfPresent(row, user, "team_id");
                     result.add(row);
                 }
             }
@@ -143,9 +142,15 @@ public class TechnicianClient {
                 if (idObj == null) {
                     continue;
                 }
-                Object supervisorId = user.get("supervisorId");
+                Object supervisorId = firstNonNull(user.get("supervisorId"), user.get("supervisor_id"));
+                Object teamId = firstNonNull(user.get("teamId"), user.get("team_id"));
+
+                String normalizedId = normalize(idObj.toString());
+
                 if (supervisorId != null) {
-                    assignments.put(idObj.toString(), supervisorId.toString());
+                    assignments.put(normalizedId, supervisorId.toString());
+                } else if (teamId != null) {
+                    assignments.put(normalizedId, teamId.toString());
                 }
             }
         } catch (Exception e) {
@@ -169,11 +174,11 @@ public class TechnicianClient {
         return null;
     }
 
-    private String extractId(Map<String, Object> tech) {
+    private String extractUserId(Map<String, Object> tech) {
         Object[] candidates = {
-                tech.get("id"),
                 tech.get("userId"),
                 tech.get("user_id"),
+                tech.get("id"),
                 tech.get("technicianId"),
                 tech.get("technician_id")
         };
@@ -184,6 +189,29 @@ public class TechnicianClient {
             String id = candidate.toString();
             if (!id.isBlank()) {
                 return id;
+            }
+        }
+        return null;
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        return value.trim().toLowerCase();
+    }
+
+    private void copyIfPresent(Map<String, Object> target, Map<String, Object> source, String key) {
+        Object value = source.get(key);
+        if (value != null) {
+            target.put(key, value);
+        }
+    }
+
+    private Object firstNonNull(Object... values) {
+        for (Object value : values) {
+            if (value != null) {
+                return value;
             }
         }
         return null;

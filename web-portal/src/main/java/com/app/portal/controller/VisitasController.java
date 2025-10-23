@@ -21,7 +21,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.app.portal.forms.CrearVisitaForm;
 import com.app.portal.client.CustomerClient;
 import com.app.portal.client.TechnicianClient;
+import com.app.portal.service.AuthClient;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +44,7 @@ public class VisitasController {
     private final CurrentUser current;
     private final CustomerClient customerClient;
     private final TechnicianClient technicianClient;
+    private final AuthClient authClient;
 
     @Value("${visits.url}")
     private String visitsSvcUrl;
@@ -279,11 +282,22 @@ public class VisitasController {
             return technicianClient.listTechnicians();
         }
         if (Objects.equals(user.getRole(), "SUPERVISOR")) {
-            UUID supervisorId = user.getId();
-            if (supervisorId == null) {
+            Set<String> allowed = technicianIdsForSupervisor(user);
+            if (allowed.isEmpty()) {
                 return List.of();
             }
-            return technicianClient.listTechniciansForSupervisor(supervisorId);
+            List<Map<String, Object>> allTechnicians = technicianClient.listTechnicians();
+            List<Map<String, Object>> filtered = new ArrayList<>();
+            for (Map<String, Object> technician : allTechnicians) {
+                String techId = extractTechnicianId(technician);
+                if (techId != null && allowed.contains(normalizeId(techId))) {
+                    Map<String, Object> enriched = new HashMap<>(technician);
+                    enriched.put("id", techId);
+                    enriched.put("userId", techId);
+                    filtered.add(enriched);
+                }
+            }
+            return filtered;
         }
         return technicianClient.listTechnicians();
     }
@@ -292,19 +306,42 @@ public class VisitasController {
         if (supervisor == null || supervisor.getId() == null) {
             return Set.of();
         }
-        return extractTechnicianIds(technicianClient.listTechniciansForSupervisor(supervisor.getId()));
-    }
-
-    private Set<String> extractTechnicianIds(List<Map<String, Object>> technicians) {
+        String supervisorKey = normalizeId(supervisor.getId().toString());
         Set<String> ids = new HashSet<>();
-        if (technicians == null) {
-            return ids;
-        }
-        for (Map<String, Object> technician : technicians) {
-            String id = extractTechnicianId(technician);
-            if (id != null) {
-                ids.add(normalizeId(id));
+        try {
+            List<Map<String, Object>> users = authClient.listUsers();
+            for (Map<String, Object> user : users) {
+                if (user == null) {
+                    continue;
+                }
+                Object role = user.get("role");
+                if (role == null || !"TECNICO".equalsIgnoreCase(role.toString())) {
+                    continue;
+                }
+                Object supervisorId = firstNonNull(user.get("supervisorId"), user.get("supervisor_id"));
+                Object teamId = firstNonNull(user.get("teamId"), user.get("team_id"));
+
+                boolean matches = false;
+                if (supervisorId != null && supervisorKey.equals(normalizeId(supervisorId.toString()))) {
+                    matches = true;
+                } else if (teamId != null && supervisorKey.equals(normalizeId(teamId.toString()))) {
+                    matches = true;
+                }
+                if (!matches) {
+                    continue;
+                }
+
+                Object idObj = user.get("id");
+                if (idObj == null) {
+                    continue;
+                }
+                String techId = normalizeId(idObj.toString());
+                if (techId != null && !techId.isBlank()) {
+                    ids.add(techId);
+                }
             }
+        } catch (Exception ex) {
+            // Si no se puede contactar auth-svc, retorna conjunto vacío
         }
         return ids;
     }
@@ -337,6 +374,15 @@ public class VisitasController {
             return null;
         }
         return value.trim().toLowerCase();
+    }
+
+    private Object firstNonNull(Object... values) {
+        for (Object value : values) {
+            if (value != null) {
+                return value;
+            }
+        }
+        return null;
     }
 
     @PostMapping("/visits/{id}/update")
