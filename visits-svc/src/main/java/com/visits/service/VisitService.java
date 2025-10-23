@@ -26,7 +26,7 @@ public interface VisitService {
 
     void cancel(UUID visitId, UUID actorId);
 
-    Page<Visit> list(UUID customerId, UUID technicianId, UUID supervisorId, VisitState state,
+    Page<Visit> list(UUID customerId, UUID technicianId, VisitState state,
                      OffsetDateTime from, OffsetDateTime to, Pageable pageable);
 
     List<Visit> myVisitsToday(UUID technicianId, LocalDate today);

@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.time.ZoneOffset;
 import java.time.OffsetDateTime;
 import java.time.LocalDate;
@@ -86,14 +87,7 @@ public class VisitasController {
             visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
 
         } else if (Objects.equals(role, "SUPERVISOR")) {
-            OffsetDateTime fromRange = OffsetDateTime.now(ZoneOffset.UTC).minusDays(30);
-            OffsetDateTime toRange = OffsetDateTime.now(ZoneOffset.UTC).plusDays(30);
-            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits")
-                    .queryParam("supervisorId", user.getId())
-                    .queryParam("from", fromRange)
-                    .queryParam("to", toRange)
-                    .queryParam("page", 0)
-                    .queryParam("size", 200);
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits");
             if (estado != null && !estado.isEmpty()) {
                 builder.queryParam("state", estado);
             }
@@ -107,6 +101,10 @@ public class VisitasController {
             }
             );
             visitas = response.getBody() != null ? response.getBody().getContent() : List.of();
+            Map<String, String> allowedTechnicians = technicianIdsForSupervisor(user);
+        visitas = visitas.stream()
+                .filter(v -> allowedTechnicians.containsKey(normalizeId(v.getTechnicianId())))
+                .collect(Collectors.toList());
         } else if (Objects.equals(role, "ADMIN")) {
             UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(visitsSvcUrl + "/visits");
             if (estado != null && !estado.isEmpty()) {
@@ -329,14 +327,21 @@ public class VisitasController {
             var supervisors = supervisorClient.listSupervisors();
             for (var opt : supervisors) {
                 if (opt == null || opt.id() == null) continue;
-                if (supervisor.getId().toString().equalsIgnoreCase(opt.id())) {
+                if (opt.id().equalsIgnoreCase(supervisor.getId().toString())) {
                     if (opt.teamId() != null) {
                         supervisorTeamNormalized = normalizeId(opt.teamId());
                     }
                     break;
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            // sin supervisor client seguimos intentando con el propio id
+        }
+        if (supervisorTeamNormalized == null && supervisor.getTeamId() != null) {
+            supervisorTeamNormalized = normalizeId(supervisor.getTeamId());
+        }
+        if (supervisorTeamNormalized == null) {
+            supervisorTeamNormalized = supervisorKey;
         }
         Map<String, String> ids = new HashMap<>();
         try {
