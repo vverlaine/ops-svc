@@ -24,7 +24,9 @@ subprojects {
     }
 }
 
-configure(subprojects.findAll { it.name != 'common' }) {
+def serviceProjects = subprojects.findAll { it.name != 'common' && it.name != 'web-portal' }
+
+configure(serviceProjects) {
     apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
 
