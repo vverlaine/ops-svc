@@ -3,7 +3,7 @@
 ##
 ## Build stage
 ##
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:17-jdk AS build
 
 WORKDIR /workspace
 
@@ -19,7 +19,7 @@ RUN ./gradlew :web-portal:bootJar --no-daemon
 ##
 ## Runtime stage
 ##
-FROM eclipse-temurin:21-jre AS runtime
+FROM eclipse-temurin:17-jre AS runtime
 
 WORKDIR /app
 
