@@ -7,12 +7,8 @@ FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /workspace
 
-# Copiamos archivos Gradle y wrapper
-COPY gradlew gradlew.bat settings.gradle build.gradle ./
-COPY gradle gradle
-
-# Copiamos el módulo del portal web
-COPY web-portal web-portal
+# Copiamos todo el repositorio (necesario para resoluciones de módulos/settings)
+COPY . .
 
 # Aseguramos permisos de ejecución del wrapper
 RUN chmod +x gradlew
